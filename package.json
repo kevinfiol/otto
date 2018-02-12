@@ -1,7 +1,7 @@
 {
-  "name": "otto",
-  "version": "1.0.0",
-  "description": "for otto-complete",
+  "name": "otto-complete",
+  "version": "0.1.0",
+  "description": "for input search autocomplete",
   "main": "index.js",
   "author": "kevinfiol",
   "license": "MIT",
