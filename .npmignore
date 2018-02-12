@@ -1,1 +1,5 @@
+node_modules/
+vendor/
+lib/index.html
+lib/api.php
 lib/otto.css
