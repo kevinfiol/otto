@@ -11,7 +11,17 @@ Simple, lightweight, Vanilla JS autocomplete with no dependencies.
 npm install otto-complete --save
 ```
 
-Or just include the .js file located [here](https://github.com/kevinfiol/otto/tree/master/lib)
+Then:
+```js
+var Otto = require('otto-complete');
+```
+
+Or if you're using ES6:
+```js
+import Otto from 'otto-complete';
+```
+
+Or forget NPM and importing/requiring and just include the .js file located [here](https://github.com/kevinfiol/otto/tree/master/lib)
 ``` html
 <script src="./otto.min.js"></script>
 ```
