@@ -20,7 +20,7 @@ Or just include the .js file
 
 ```js
 // Choices array
-var fruits = ['apple', 'banana', 'avocado', 'tomato', 'kiwi'];
+var choices = ['apple', 'banana', 'avocado', 'tomato', 'kiwi'];
 
 // Config Object (Optional)
 var config = {
@@ -48,7 +48,7 @@ var config = {
 };
 
 // Initialize Otto instance
-var otto = new Otto(document.getElementById('search'), config, fruits);
+var otto = new Otto(document.getElementById('search'), config, choices);
 ```
 
-**Note:** If a source array is not provided (such as in this example, `fruits`), Otto will fall back on the source function passed inside the `config` object.
+**Note:** If a source array is not provided (such as in this example, `choices`), Otto will fall back on the source function passed inside the `config` object.
