@@ -3,7 +3,7 @@ otto
 
 Simple, lightweight, Vanilla JS autocomplete with no dependencies.
 
-[![NPM version](https://badge.fury.io/js/otto-complete.svg)][badge]
+![NPM version](https://badge.fury.io/js/otto-complete.svg)
 
 ## Install
 
