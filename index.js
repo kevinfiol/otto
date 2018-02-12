@@ -1,1 +1,1 @@
-exports.Otto = require('./lib/otto');
+module.exports = require('./lib/otto');
