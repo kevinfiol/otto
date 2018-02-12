@@ -1,3 +1,4 @@
 node_modules/
-server/
-/vendor/
+vendor/
+lib/index.html
+lib/api.php
