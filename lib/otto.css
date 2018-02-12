@@ -1,0 +1,4 @@
+.otto-div { border: 1px solid lightgrey; }
+.otto-ul { padding: 0; margin: 0; }
+.otto-li { padding: 2px; margin: 0; }
+.selected { background-color: #f2f2f2; }

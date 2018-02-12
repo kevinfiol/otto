@@ -1,0 +1,11 @@
+{
+  "name": "otto",
+  "version": "1.0.0",
+  "description": "for otto-complete",
+  "main": "index.js",
+  "author": "kevinfiol",
+  "license": "MIT",
+  "devDependencies": {
+    "eslint": "^4.17.0"
+  }
+}

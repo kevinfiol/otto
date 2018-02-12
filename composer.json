@@ -1,0 +1,16 @@
+{
+    "name": "kevin/mini-complete",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "kevin fiol",
+            "email": "keb@protonmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {},
+    "require-dev": {
+        "kevinfiol/fuzzget": "dev-master"
+    }
+}
