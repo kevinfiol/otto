@@ -2,3 +2,5 @@ node_modules/
 vendor/
 lib/index.html
 lib/api.php
+composer.lock
+composer.json

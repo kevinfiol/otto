@@ -4,3 +4,5 @@ lib/index.html
 lib/api.php
 lib/otto.css
 lib/otto.min.js
+composer.lock
+composer.json
