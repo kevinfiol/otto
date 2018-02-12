@@ -11,9 +11,18 @@ Simple, lightweight, Vanilla JS autocomplete with no dependencies.
 npm install otto-complete --save
 ```
 
-Or just include the .js file
+Or just include the .js file located [here](https://github.com/kevinfiol/otto/tree/master/lib)
 ``` html
 <script src="./otto.min.js"></script>
+```
+
+You may include the optional styles also located [here](https://github.com/kevinfiol/otto/tree/master/lib).
+They are only four lines. Here's a snippet of it for your convenience:
+```css
+.otto-div { border: 1px solid lightgrey; }
+.otto-ul { padding: 0; margin: 0; }
+.otto-li { padding: 2px; margin: 0; }
+.selected { background-color: #f2f2f2; }
 ```
 
 ## Usage
