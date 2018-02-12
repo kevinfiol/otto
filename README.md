@@ -61,7 +61,7 @@ var config = {
 	// Default is false; use if you only want to match full words	
 	matchFullWord: true,
 
-	// Source Function: Used in case you'd like to dynamically retrieve results via an XMLHttpRequest, f.e.
+	// Source Callback Function: Used in case you'd like to dynamically retrieve results via an XMLHttpRequest, f.e.
 	// This is called on every keypress except Enter, Up Arrow, and Down Arrow
 	source: null
 };
@@ -71,3 +71,39 @@ var otto = new Otto(document.getElementById('search'), config, choices);
 ```
 
 **Note:** If a source array is not provided (such as in this example, `choices`), Otto will fall back on the source function passed inside the `config` object.
+
+## Using `config.source`
+
+The source function expects two arguments: `query`, which refers to the current input value, and `done`, which is a callback that expects the array of results to return.
+
+Here's a simple, vanilla example:
+
+```js
+// Define Source Function
+var sourceFunction = function(query, done) {
+	var request = new XMLHttpRequest();
+	request.open('GET', 'myAPI.php?query=' + query, true);
+
+	request.onload = function() {
+		if (request.status >= 200 && request.status < 400) {
+			// Request is OK!
+			done(request.responseText);
+		} else {
+			// Something went wrong? Return empty array
+			done([]);
+		}
+	}
+
+	request.onerror = function() {
+		// Error, Return empty array
+		done([]);
+	}
+
+	request.send();
+}
+
+// Initialize Otto instance
+var otto = new Otto(document.getElementById('search'), {
+	source: sourceFunction
+});
+```
