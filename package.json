@@ -5,6 +5,9 @@
   "main": "index.js",
   "author": "kevinfiol",
   "license": "MIT",
+  "scripts": {
+  	"minify": "uglifyjs ./lib/otto.js --compress --mangle --output ./lib/otto.min.js"
+  },
   "devDependencies": {
     "eslint": "^4.17.0"
   }
