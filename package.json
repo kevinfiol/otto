@@ -1,12 +1,12 @@
 {
   "name": "otto-complete",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "for input search autocomplete",
   "main": "index.js",
   "author": "kevinfiol",
   "license": "MIT",
   "scripts": {
-  	"minify": "uglifyjs ./lib/otto.js --compress --mangle --output ./lib/otto.min.js"
+    "minify": "uglifyjs ./lib/otto.js --compress --mangle --output ./lib/otto.min.js"
   },
   "devDependencies": {
     "eslint": "^4.17.0"
