@@ -29,10 +29,10 @@ Or forget NPM and importing/requiring and just include the .js file located [her
 You may include the optional styles also located [here](https://github.com/kevinfiol/otto/tree/master/lib).
 They are only four lines. Here's a snippet of it for your convenience:
 ```css
-.otto-div { border: 1px solid lightgrey; }
+.otto-div { border: 1px solid lightgrey; -webkit-transition: width 0.5s; transition: width 0.5s;  }
 .otto-ul { padding: 0; margin: 0; }
 .otto-li { padding: 2px; margin: 0; }
-.selected { background-color: #f2f2f2; }
+.otto-selected { background-color: #f2f2f2; }
 ```
 
 ## Usage
@@ -61,8 +61,23 @@ var config = {
 	// Default is false; use if you only want to match full words	
 	matchFullWord: true,
 
+	// A callback function to execute upon hitting the Enter Key
+	// It takes one argument, which is the the event object.
+	// Note: This callback will be triggered on the 'keydown' event, and only executes when the dropdown is hidden
+	enterEvent: null,
+
+	// A callback function to execute when the value of the input is changed
+	// It takes one argument, which is the current value of the input field
+	// Note: This callback will be triggered on the 'input' event
+	valueEvent: null,
+
+	// A convenience property; Use this object to add additional event listeners to the input element
+	// E.g., events: { click: function(ev) { console.log('you clicked the input box!'); } }
+	events: {},
+
 	// Source Callback Function: Used in case you'd like to dynamically retrieve results via an XMLHttpRequest, f.e.
-	// This is called on every keypress except Enter, Up Arrow, and Down Arrow
+	// This is called on every input except Enter, Up Arrow, and Down Arrow
+	// It takes two arguments, `query` which is the current input value, and `done`, a callback that will update the prediction list
 	source: null
 };
 
