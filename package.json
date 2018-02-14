@@ -5,10 +5,12 @@
   "main": "index.js",
   "author": "kevinfiol",
   "license": "MIT",
+  "browserslist": ["last 5 versions", "not ie <= 6"],
   "scripts": {
     "minify": "uglifyjs ./lib/otto.js --compress --mangle --output ./otto.min.js"
   },
   "devDependencies": {
-    "eslint": "^4.17.0"
+    "eslint": "^4.17.0",
+    "eslint-plugin-compat": "^2.2.0"
   }
 }

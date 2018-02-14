@@ -1,12 +1,20 @@
 {
     "env": {
-        "browser": true
+        "browser": true,
+        "es6": false
     },
     "extends": "eslint:recommended",
     "parserOptions": {
-        "sourceType": "module"
+        "ecmaVersion": 5,
+        "ecmaFeatures": {
+            "impliedStrict": true
+        }
     },
+    "plugins": [
+        "compat"
+    ],
     "rules": {
+        "compat/compat": "error",
         "indent": [
             "error",
             4,
