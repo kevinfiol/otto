@@ -1,6 +1,6 @@
 {
   "name": "otto-complete",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "for input search autocomplete",
   "main": "index.js",
   "author": "kevinfiol",
