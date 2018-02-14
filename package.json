@@ -1,11 +1,14 @@
 {
   "name": "otto-complete",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "for input search autocomplete",
   "main": "index.js",
   "author": "kevinfiol",
   "license": "MIT",
-  "browserslist": ["last 5 versions", "not ie <= 6"],
+  "browserslist": [
+    "last 5 versions",
+    "not ie <= 6"
+  ],
   "scripts": {
     "minify": "uglifyjs ./lib/otto.js --compress --mangle --output ./otto.min.js"
   },
