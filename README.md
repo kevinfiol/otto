@@ -22,7 +22,7 @@ import Otto from 'otto-complete';
 ```
 
 Or if you're not using a package manager:
-``` html
+```html
 <script src="https://unpkg.com/otto-complete/otto.min.js"></script>
 ```
 
