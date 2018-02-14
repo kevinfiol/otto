@@ -7,7 +7,7 @@ Simple, lightweight, Vanilla JS autocomplete with no dependencies.
 
 ## Install
 
-``` bash
+```bash
 npm install otto-complete --save
 ```
 
@@ -21,18 +21,18 @@ Or if you're using ES6:
 import Otto from 'otto-complete';
 ```
 
-Or forget NPM and importing/requiring and just include the .js file located [here](https://github.com/kevinfiol/otto/tree/master/lib)
+Or if you're not using a package manager:
 ``` html
-<script src="./otto.min.js"></script>
+<script src="https://unpkg.com/otto-complete/otto.min.js"></script>
 ```
 
 You may include the optional styles also located [here](https://github.com/kevinfiol/otto/tree/master/lib).
 They are only four lines. Here's a snippet of it for your convenience:
 ```css
-.otto-div { border: 1px solid lightgrey; -webkit-transition: width 0.5s; transition: width 0.5s;  }
 .otto-ul { padding: 0; margin: 0; }
-.otto-li { padding: 2px; margin: 0; }
+.otto-li { padding: 6px; margin: 0; }
 .otto-selected { background-color: #f2f2f2; }
+.otto-div { border: 1px solid lightgrey; -webkit-transition: all 0.5s; transition: all 0.5s; }
 ```
 
 ## Usage
