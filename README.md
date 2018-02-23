@@ -63,7 +63,7 @@ var config = {
 
 	// A callback function to execute upon hitting the Enter Key
 	// It takes one argument, which is the the event object.
-	// Note: This callback will be triggered on the 'keydown' event, and only executes when the dropdown is hidden
+	// Note: This callback will be triggered on the 'keyup' event, and only executes when the dropdown is hidden
 	enterEvent: null,
 
 	// A callback function to execute when the value of the input is changed
