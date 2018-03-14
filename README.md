@@ -41,6 +41,24 @@ They are only four lines. Here's a snippet of it for your convenience:
 // Choices array
 var choices = ['apple', 'banana', 'avocado', 'tomato', 'kiwi'];
 
+// Choices can also be object literals with custom properties
+// `label` is required. Both `value` and `matchOn` are optional.
+var otherChoices = [
+	{
+		// What the user sees
+		label: 'apple',
+
+		// What the input gets populated with upon selection
+		value: 'A red delicious fruit',
+
+		// What Otto will match on
+		matchOn: 'apple APPLE red fruit grannysmith'
+	},
+
+	// Other example.
+	{ label: 'banana', value: 'Monkey Bananas', matchOn: 'monkey yellow banana' }
+];
+
 // Config Object (Optional)
 var config = {
 	// Minimum characters before results are filtered; Default is 3
@@ -58,18 +76,29 @@ var config = {
 	// Append custom class to all li elements	
 	liClass: 'myLiClass'
 
-	// Default is false; use if you only want to match full words	
+	// Match only full words. Default is false.
 	matchFullWord: true,
 
-	// A callback function to execute upon hitting the Enter Key
+	// Enter Event. A callback function to execute upon hitting the Enter Key.
 	// It takes one argument, which is the the event object.
 	// Note: This callback will be triggered on the 'keyup' event, and only executes when the dropdown is hidden
-	enterEvent: null,
+	enterEvent: function(ev) {
+		myFormElement.submit();
+	},
 
-	// A callback function to execute when the value of the input is changed
+	// Value Event. A callback function to execute when the value of the input is changed
 	// It takes one argument, which is the current value of the input field
-	// Note: This callback will be triggered on the 'input' event
-	valueEvent: null,
+	// Note: This callback will be triggered on the 'input' event, 'enter' event, and when a dropdown item is selected.
+	valueEvent: function(value) {
+		myOuterVariable = value;
+	},
+
+	// Render Item. Customize the HTML for rendering dropdown items.
+	// It takes two arguments, item label, and the item value
+	// Note: If a 'value' was not provided, value will be set equal to label.
+	renderItem: function(label, value) {
+		return label + '<em>' + value + '</em>';
+	},
 
 	// A convenience property; Use this object to add additional event listeners to the input element
 	// E.g., events: { click: function(ev) { console.log('you clicked the input box!'); } }
