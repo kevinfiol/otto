@@ -36,7 +36,12 @@ They are only four lines. Here's a snippet of it for your convenience:
 ```
 
 ## Usage
+Otto takes three arguments: an `input` HTML element, a `config` object, and a `choices` array.
+```js
+new Otto(inputElement, config, choices);
+```
 
+Example:
 ```js
 // Choices array
 var choices = ['apple', 'banana', 'avocado', 'tomato', 'kiwi'];
