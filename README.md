@@ -52,7 +52,6 @@ var choices = [
 	{ label: 'banana' },
 ];
 
-// Choices can also be object literals with custom properties
 // `label` is required. Both `value` and `matchOn` are optional.
 var otherChoices = [
 	{
