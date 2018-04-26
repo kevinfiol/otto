@@ -41,10 +41,16 @@ Otto takes three arguments: an `input` HTML element, a `config` object, and a `c
 new Otto(inputElement, config, choices);
 ```
 
+Choices **must be objects** with at the very least have a `label` attribute defined. If your choice objects only contain the `label` attribute, `value` and `matchOn` attributes will default to the `label` value.
+
 Example:
 ```js
 // Choices array
-var choices = ['apple', 'banana', 'avocado', 'tomato', 'kiwi'];
+var choices = [
+	{ label: 'apple' },
+	{ label: 'kiwi' },
+	{ label: 'banana' },
+];
 
 // Choices can also be object literals with custom properties
 // `label` is required. Both `value` and `matchOn` are optional.
@@ -60,8 +66,9 @@ var otherChoices = [
 		matchOn: 'apple APPLE red fruit grannysmith'
 	},
 
-	// Other example.
-	{ label: 'banana', value: 'Monkey Bananas', matchOn: 'monkey yellow banana' }
+	// Extra attributes can be added to your choice objects for use
+	// In custom renderItem or selectEvents.
+	{ label: 'banana', value: 'Monkey Bananas', matchOn: 'monkey yellow banana', bananaCode: 52 }
 ];
 
 // Config Object (Optional)
@@ -99,10 +106,15 @@ var config = {
 	},
 
 	// Render Item. Customize the HTML for rendering dropdown items.
-	// It takes two arguments, item label, and the item value
-	// Note: If a 'value' was not provided, value will be set equal to label.
-	renderItem: function(label, value) {
-		return label + '<em>' + value + '</em>';
+	// It takes one argument, which is the choice object
+	renderItem: function(choice) {
+		return choice.label + '<em>' + choice.value + '</em>';
+	},
+
+	// Select Event. A callback function to execute once a choice has been selected.
+	// It takes one argument, which is the choice object
+	selectEvent: function(choice) {
+		console.log('Label + Value', choice.label + choice.value);
 	},
 
 	// A convenience property; Use this object to add additional event listeners to the input element
