@@ -1,19 +1,37 @@
 {
   "name": "otto-complete",
-  "version": "0.3.5",
-  "description": "for input search autocomplete",
+  "version": "1.0.0",
+  "description": "A lightweight text autocomplete library",
   "main": "index.js",
   "author": "kevinfiol",
   "license": "MIT",
+  "repository": "https://gitlab.com/kevinfiol/otto",
   "browserslist": [
     "last 5 versions",
     "not ie <= 6"
   ],
   "scripts": {
-    "minify": "uglifyjs ./lib/otto.js --compress --mangle --output ./otto.min.js"
+    "start": "rollup -c -w --environment DEV",
+    "build": "rollup -c --environment PROD"
   },
   "devDependencies": {
-    "eslint": "^4.17.0",
-    "eslint-plugin-compat": "^2.2.0"
+    "eslint": "^5.14.1",
+    "eslint-plugin-compat": "^2.2.0",
+    "rollup": "^1.4.0",
+    "rollup-plugin-buble": "^0.19.6",
+    "rollup-plugin-commonjs": "^9.2.1",
+    "rollup-plugin-node-resolve": "^4.0.1",
+    "rollup-plugin-uglify": "^6.0.2"
+  },
+  "eslintConfig": {
+    "extends": "eslint:recommended",
+    "env": {
+      "es6": true,
+      "browser": true,
+      "node": true
+    },
+    "parserOptions": {
+      "sourceType": "module"
+    }
   }
 }

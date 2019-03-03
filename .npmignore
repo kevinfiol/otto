@@ -1,9 +1,3 @@
 node_modules/
-vendor/
-lib/index.html
-lib/api.php
-lib/otto.css
-lib/otto.min.js
-lib/otto_t.js
-composer.lock
-composer.json
+dev/
+lib/

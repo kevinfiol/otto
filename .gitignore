@@ -1,7 +1,4 @@
 node_modules/
-vendor/
 lib/index.html
-lib/api.php
-lib/otto_t.js
-composer.lock
-composer.json
+*.map
+dev/

@@ -1,1 +1,1 @@
-module.exports = require('./lib/otto');
+module.exports = require('./bin/otto.min.js');
