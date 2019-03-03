@@ -2,4 +2,5 @@ node_modules/
 lib/index.html
 *.map
 dev/
-bin/
+bin/otto.min.js
+bin/otto.cjs.js
