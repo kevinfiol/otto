@@ -8,8 +8,8 @@ const isProd = process.env.PROD === 'true';
 const input = './lib/index.js';
 
 const filenames = {
-    iife: isProd ? './bin/otto.min.js' : './dev/otto.js',
-    cjs:  isProd ? './bin/otto.cjs.js' : './dev/otto.cjs.js'
+    iife: isProd ? './dist/otto.min.js' : './dev/otto.js',
+    cjs:  isProd ? './dist/otto.cjs.js' : './dev/otto.cjs.js'
 };
 
 const configs = [
