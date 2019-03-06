@@ -1,6 +1,5 @@
 const o     = require('ospec');
 const jsdom = require('jsdom');
-const syn   = require('syn');
 const Otto  = require('../lib/otto');
 
 const { JSDOM } = jsdom;
@@ -18,7 +17,7 @@ const document   = window.document;
 // Input Element
 const root = document.querySelector('input');
 
-o.spec('Testing Otto with Local Data', () => {
+o.spec('Otto Unit Tests', () => {
     let otto = null;
 
     const choices = [
@@ -33,12 +32,31 @@ o.spec('Testing Otto with Local Data', () => {
         otto = new Otto(root, { window }, choices);
     });
 
-    o('Typing in `min`', () => {
-        syn.type(root, 'min', () => {
-            console.log(root.innerText);
-        });
+    o('Test applyFilter', () => {
+        otto.inputValue = 'min';
+        otto.applyFilter();
 
-        // console.log(root.children);
-        o(1 + 1).equals(2);
+        // Choices should be 'Minnesota' and 'Wyoming'
+        // Check Length
+        const len = otto.filteredChoices.length;
+        o(len).equals(2);
+
+        const f = otto.filteredChoices[0];
+        const s = otto.filteredChoices[1];
+
+        o(f.label).equals('Minnesota');
+        o(s.label).equals('Wyoming');
+    });
+
+    o('Test handleInput', () => {
+        const event = { target: { value: 'foo' } };
+        otto.handleInput(event);
+
+        o(otto.inputValue).equals('foo');
+        o(otto.selected).equals(null);
+
+        // 'foo' should not match, so filteredChoices should be empty
+        const len = otto.filteredChoices.length;
+        o(len).equals(0);
     });
 });

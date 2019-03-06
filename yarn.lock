@@ -2044,11 +2044,6 @@ symbol-tree@^3.2.2:
   resolved "https://registry.yarnpkg.com/symbol-tree/-/symbol-tree-3.2.2.tgz#ae27db38f660a7ae2e1c3b7d1bc290819b8519e6"
   integrity sha1-rifbOPZgp64uHDt9G8KQgZuFGeY=
 
-syn@^0.13.0:
-  version "0.13.0"
-  resolved "https://registry.yarnpkg.com/syn/-/syn-0.13.0.tgz#2a81fbf9211c25fd3b221620fdfe65455007bdc7"
-  integrity sha512-RiPouGtNIFquyHI3oxE1YU86eXjpWCAX3xuLaAuFn9C20V0ehI3E9Qw+n0u9zMY8k9kr+fvBYeqBaAgpOUzlsQ==
-
 table@^5.2.3:
   version "5.2.3"
   resolved "https://registry.yarnpkg.com/table/-/table-5.2.3.tgz#cde0cc6eb06751c009efab27e8c820ca5b67b7f2"
