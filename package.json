@@ -1,6 +1,6 @@
 {
   "name": "otto-complete",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "A lightweight text autocomplete library",
   "main": "dist/otto.cjs.js",
   "module": "dist/otto.min.js",
