@@ -29,23 +29,25 @@ o.spec('Otto Unit Tests', () => {
     ];
 
     o.before(() => {
-        otto = new Otto(root, { window }, choices);
+        otto = new Otto(root, { minChars: 2, window }, choices);
     });
 
     o('Test applyFilter', () => {
-        otto.inputValue = 'min';
+        otto.inputValue = 'mi';
         otto.applyFilter();
 
-        // Choices should be 'Minnesota' and 'Wyoming'
+        // Choices should be Michigan, Minnesota, Wyoming
         // Check Length
         const len = otto.filteredChoices.length;
-        o(len).equals(2);
+        o(len).equals(3);
 
         const f = otto.filteredChoices[0];
         const s = otto.filteredChoices[1];
+        const t = otto.filteredChoices[2];
 
-        o(f.label).equals('Minnesota');
-        o(s.label).equals('Wyoming');
+        o(f.label).equals('Michigan');
+        o(s.label).equals('Minnesota');
+        o(t.label).equals('Wyoming');
     });
 
     o('Test handleInput', () => {
@@ -58,5 +60,33 @@ o.spec('Otto Unit Tests', () => {
         // 'foo' should not match, so filteredChoices should be empty
         const len = otto.filteredChoices.length;
         o(len).equals(0);
+    });
+
+    o('Test updateList', () => {
+        // Must set inputvalue and applyfilter first to update filteredChoices
+        otto.inputValue = 'mi';
+        otto.applyFilter();
+
+        // Update List
+        otto.updateList();
+
+        // Since there should be three choices
+        // otto.ul should have three children `li` elements
+        const len = otto.ul.children.length;
+        o(len).equals(3);
+    });
+
+    o('Test handleEnter', () => {
+        otto.inputValue = 'mi';
+        otto.applyFilter();
+
+        // Set this.selected to first filtered choice
+        otto.selected = otto.filteredChoices[0];
+
+        // Call handlEnter
+        otto.handleEnter();
+
+        o(otto.inputValue).equals(otto.selected.value);
+        o(otto.filteredChoices.length).equals(0);
     });
 });
