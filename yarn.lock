@@ -933,6 +933,11 @@ http-signature@~1.2.0:
     jsprim "^1.2.2"
     sshpk "^1.7.0"
 
+hyperapp@^1.2.9:
+  version "1.2.9"
+  resolved "https://registry.yarnpkg.com/hyperapp/-/hyperapp-1.2.9.tgz#a17ec09634968a5fa5f6b7d649e7a03d9680fcf2"
+  integrity sha512-bIzi12am7pyQ5nc2qnQpN6GWonjdJp+AghY7j9H9L0vccM1OQ3Cqn13cZlmS9KYm91Nf9fwF4KjvbQekFBxHVw==
+
 iconv-lite@0.4.24, iconv-lite@^0.4.24:
   version "0.4.24"
   resolved "https://registry.yarnpkg.com/iconv-lite/-/iconv-lite-0.4.24.tgz#2022b4b25fbddc21d2f524974a474aafe733908b"
