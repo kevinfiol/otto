@@ -1,6 +1,2 @@
 node_modules/
-lib/index.html
 *.map
-dev/
-dist/otto.min.js
-dist/otto.cjs.js

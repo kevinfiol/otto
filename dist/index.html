@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>otto</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<link href="https://fonts.googleapis.com/css?family=Merriweather:400,700" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.15.0/prism.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.15.0/themes/prism.min.css" type="text/css" rel="stylesheet" />
+    <style>
+        html { overflow-y: scroll; }
+
+        body { 
+            background-color: #f7f7f7;
+            padding: 2em;
+            color: #606060;
+            font-family: "Merriweather", Cambria, serif;
+        }
+
+        .demo { max-width: 700px; margin: 0 auto; }
+        .otto-ul { padding: 0; margin: 0; }
+        .otto-li { padding: 6px; margin: 0; }
+        .otto-selected, .otto-li:hover { background-color: #f2f2f2; }
+        .otto-div { border: 1px solid lightgrey; -webkit-transition: all 0.5s; transition: all 0.5s; }
+        .otto-demo { width: 100%; margin: 0 auto; height: 2.2em; padding: 0.5em; font-size: 1em; }
+    </style>
+</head>
+
+<body>
+	<div class="container">
+        <div class="demo">
+            <input id="demo1" class="otto-demo" type="text"></input>
+            <!-- <input id="demo2" class="otto-demo" type="text"></input> -->
+        </div>
+    </div>
+    <script src="otto.js"></script>
+    <script>
+        document.onreadystatechange = function () {
+            if (document.readyState === 'interactive') {
+                setTimeout(function() {
+                    var choices = [
+                        { label: 'Alabama', matchOn: 'banana' },
+                        { label: 'Alaska' },
+                        { label: 'Michigan' },
+                        { label: 'Minnesota' },
+                        { label: 'Wyoming' },
+                        { label: 'Doug' },
+                        { label: 'Omigod Records' },
+                        { label: 'Ganon' },
+                        { label: 'Little Bambam' },
+                        { label: 'Ness from Earthbound' },
+                        { label: 'Ghoul' },
+                        { label: 'Banana' }
+                    ];
+
+                    var xhr = null;
+                    var sourceFunc = function(query, done) {
+                        // Abort last request
+                        if (xhr) {
+                            xhr.abort();
+                        }
+
+                        xhr = new XMLHttpRequest();
+                        xhr.open('GET', 'https://swapi.co/api/people/?search=' + query, true);
+
+                        xhr.onload = function () {
+                            if (xhr.status >= 200 && xhr.status < 400) {
+                                // Parse the response here...
+                                var choices = [];
+                                var json = JSON.parse(xhr.responseText);
+
+                                json.results.forEach(function(person) {
+                                    choices.push({ label: person.name });
+                                });
+
+                                done(choices);
+                            } else {
+                                // Else return empty array
+                                done([]);
+                            }
+                        };
+
+                        // Returns empty array onerror
+                        xhr.onerror = function() { 
+                            done([]);
+                        };
+                        
+                        xhr.send();
+                    };
+
+                    var demo1 = new Otto(document.getElementById('demo1'), {
+                        minChars: 3,
+                        maxResults: 4,
+                        // enterEvent: e => console.log('this is the enter event: ', e),
+                        // valueEvent: val => console.log('here is the value now: ', val),
+                        // selectEvent: console.log
+                        
+                        // renderItem: c => `<em>${c.value}</em>`
+                        source: sourceFunc
+                    });
+
+
+
+                    // var demo2 = new Otto(document.getElementById('demo2'), { 
+                    //     minChars: 3, 
+                    //     source: sourceFunc 
+                    // });
+                }, 500);
+            }
+        }
+    </script>
+</body>
+</html>
