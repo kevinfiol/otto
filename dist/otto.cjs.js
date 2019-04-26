@@ -404,62 +404,62 @@ function app(state, actions, view, container) {
   }
 }
 
-var Input = function () { return function (state, actions) {
-    var oninput = function (e) {
-        var val = e.target.value;
-        actions.setInputVal(val);
+var filterChoiceList = function (val, list, matchFullWord, maxResults) {
+    var filtered = list.filter(function (c) {
+        var v = val.toUpperCase();
+        var matchOn = c.matchOn;
+        var index = matchOn.toUpperCase().indexOf(v);
 
-        if (val && val.trim().length >= state.minChars) {
-            if (state.source) {
-                actions.fetchFromSource();
-            } else {
-                actions.applyFilter();
-                actions.setShowDropdownOnFiltered();
-                actions.setSelectedOnShowDropdown();
-            }   
-        } else {
-            actions.setFiltered([]);
-            actions.setShowDropdownOnFiltered();
-            actions.setSelectedOnShowDropdown();
-        }
-    };
+        var wordPassesTest = matchFullWord || false
+            ? matchOn[index - 1] === undefined || matchOn[index - 1] === ' '
+            : true
+        ;
+
+        return index > -1 && wordPassesTest;
+    });
+
+    filtered = filtered.slice(0, maxResults);
+    return filtered;
+};
+
+var choicePropMap = function (choice) {
+    return Object.assign({}, choice, {
+        label: choice.label,
+        matchOn: choice.matchOn || choice.label,
+        value: choice.value || choice.label
+    });
+};
+
+var SelectInput = function () { return function (state, actions) {
 
     var onfocus = function () {
-        actions.setShowDropdownOnFiltered();
+        actions.setShowDropdown(true);
+    };
+
+    var onblur = function () {
+        actions.setShowDropdown(false);
+    };
+
+    return h('input', {
+        class: state.inputClass,
+        autocomplete: 'off',
+        value: state.inputVal,
+        onfocus: onfocus,
+        onblur: onblur
+    });
+}; };
+
+var Input = function () { return function (state, actions) {
+    var onfocus = function () {
+        if (state.filtered.length)
+            { actions.setShowDropdown(true); }
+        else
+            { actions.setShowDropdown(false); }
     };
 
     var onblur = function () {
         actions.setShowDropdown(false);
         actions.setSelected(null);
-    };
-
-    var onkeydown = function (e) {
-        if (e.keyCode == 38 || e.keyCode == 40) {
-            // Up or Down
-            if (state.showDropdown) {
-                e.preventDefault();
-
-                if (e.keyCode == 38)
-                    { actions.decrementSelected(); }
-                if (e.keyCode == 40)
-                    { actions.incrementSelected(); }
-            }
-        }
-
-        if (e.keyCode == 9 || e.keyCode == 13) {
-            // Enter or Tab
-            if (state.showDropdown) {
-                e.preventDefault();
-                actions.setChoiceOnSelected();
-                actions.applyFilter();
-                actions.setSelected(null);
-                actions.setShowDropdown(false);
-            } else {
-                // Custom Event for Enter
-                if (e.keyCode == 13 && state.enterEvent)
-                    { state.enterEvent(e); }
-            }
-        }
     };
 
     var oncreate = function (dom) {
@@ -474,32 +474,44 @@ var Input = function () { return function (state, actions) {
     };
 
     return h('input', {
+        id: state.inputId,
         class: state.inputClass,
         autocomplete: 'off',
         value: state.inputVal,
-        oninput: oninput,
+        oninput: actions.onInput,
+        onkeydown: actions.onInputKeydown,
         onfocus: onfocus,
         onblur: onblur,
-        onkeydown: onkeydown,
-        oncreate: oncreate
+        oncreate: oncreate,
+        style: { boxSizing: 'border-box' }
     });
 }; };
+
+var Dropdown = function (ref, children) {
+    var dropdownClass = ref.dropdownClass;
+
+    return h('div', {
+        class: ("otto-div " + dropdownClass).trim(),
+        style: {
+            width: '100%',
+            backgroundColor: 'white',
+            overflow: 'hidden',
+            zIndex: '99'
+        }
+    }, children);
+};
 
 var ListElement = function (choice, isSelected) { return function (state, actions) {
     var attrs = {
         key: choice.value,
         class: ("otto-li " + (state.liClass) + " " + (isSelected ? 'otto-selected' : '')).trim(),
-        style: {
-            listStyleType: 'none',
-            cursor: 'default'
-        },
-        onmousedown: function () {
-            actions.setChoiceAndInputVal(choice);
-            actions.applyFilter();
-            actions.focusInputAndHideDropdown();
-        }
+        style: { listStyleType: 'none', cursor: 'default' },
+        onmousedown: function () { return actions.onListElementMouseDown(choice.value); }
     };
 
+    /**
+     * If Custom Render Method
+     */
     if (state.renderItem) {
         attrs.oncreate = function (e) { return e.innerHTML = state.renderItem(choice, state.inputVal); };
         return h('li', attrs);
@@ -540,41 +552,46 @@ function removeHTML(s) {
     return s.replace(/&/g, '').replace(/</g, '').replace(/>/g, '');
 }
 
-var UnorderedList = function (list) { return function (state) {
-    return h('ul', { class: ("otto-ul " + (state.ulClass)).trim() }, 
+var UnorderedList = function (ref) {
+    var ulClass = ref.ulClass;
+    var list = ref.list;
+    var selected = ref.selected;
+    var emptyMsg = ref.emptyMsg;
+
+    return h('ul', { class: ("otto-ul " + ulClass).trim() }, 
         list.length
             ? list.map(function (choice, index) {
-                var isSelected = (index === state.selected);
+                var isSelected = (index === selected);
                 return ListElement(choice, isSelected);
             })
-            : h('li', {}, 'nothing here')
+            : h('li', { style: { padding: '0.3em' } }, emptyMsg)
         
     );
-}; };
-
-var Dropdown = function () { return function (state) {
-    return h('div', {
-        class: ("otto-div " + (state.dropdownClass)).trim(),
-        style: {
-            width: state.width,
-            backgroundColor: 'white',
-            position: 'absolute',
-            overflow: 'hidden',
-            zIndex: '99'
-        }
-    },
-        UnorderedList(state.filtered)
-    );
-}; };
+};
 
 var App = function () { return function (state) {
     return h('div', { class: state.divClass }, [
-        Input(),
-        state.showDropdown ? Dropdown() : null
-    ]);
+        state.selectMode
+            ? SelectInput()
+            : Input()
+        ,
+
+        state.showDropdown
+            ? Dropdown({ dropdownClass: state.dropdownClass, width: state.width },
+                UnorderedList({
+                    ulClass: state.ulClass,
+                    list: state.filtered,
+                    selected: state.selected,
+                    emptyMsg: state.emptyMsg
+                })
+            )
+            : null ]);
 }; };
 
 var actions = {
+    /**
+     * Setters
+     */
     setAll: function (all) { return ({ all: all }); },
 
     setFiltered: function (filtered) { return ({ filtered: filtered }); },
@@ -591,96 +608,75 @@ var actions = {
         return { inputVal: inputVal };
     }; },
 
-    addToCache: function (key) { return function (state) {
-        var newCache = Object.assign({}, state.cache);
-        newCache[key] = [].concat( state.all );
-        return { cache: newCache };
-    }; },
+    /**
+     * Input Actions
+     */
+    onInput: function (e) { return function (state, actions) {
+        var inputVal = e.target.value;
+        actions.setInputVal(inputVal);
 
-    focusInputAndHideDropdown: function () { return function (state, actions) {
-        setTimeout(function () {
-            state.inputRef.focus();
-            actions.setShowDropdown(false);
-        });
-    }; },
+        var cb = function (choices) {
+            var filtered = filterChoiceList(
+                inputVal, 
+                choices, 
+                state.matchFullWord, 
+                state.maxResults
+            );
 
-    setChoiceAndInputVal: function (choice) { return function (state, actions) {
-        if (state.selectEvent)
-            { state.selectEvent(choice); }
-        
-        actions.setInputVal(choice.value);
-        return { choice: choice };
-    }; },
+            actions.setAll(choices);
+            actions.setFiltered(filtered);
+            
+            var showDropdown = filtered.length > 0;
+            actions.setShowDropdown(showDropdown);
+            if (!showDropdown) { actions.setSelected(null); }
+        };
 
-    fetchFromSource: function () { return function (state, actions) {
-        var key = state.inputVal.toUpperCase().trim();
-
-        // Check Cache
-        if (state.cache[key]) {
-            actions.setAll(state.cache[key]);
-            actions.applyFilter();
-
-            actions.setShowDropdownOnFiltered();
-            actions.setSelectedOnShowDropdown();
+        if (inputVal && inputVal.trim().length >= state.minChars) {
+            if (state.source) { actions.fetchFromSource(cb); }
+            else { cb(state.all); }
         } else {
-            state.source(state.inputVal, function (res) {
-                var choices = res || [];
-
-                choices = choices.map(function (c) {
-                    return Object.assign({}, c, {
-                        label:   c.label,
-                        matchOn: c.matchOn || c.label,
-                        value:   c.value || c.label
-                    });
-                });
-
-                actions.setAll(choices);
-                actions.addToCache(key);
-
-                actions.applyFilter();
-                actions.setShowDropdownOnFiltered();
-                actions.setSelectedOnShowDropdown();
-            });
+            actions.setFiltered([]);
+            actions.setShowDropdown(false);
+            actions.setSelected(null);
         }
     }; },
 
-    applyFilter: function () { return function (state, actions) {
-        var val = state.inputVal;
+    onInputKeydown: function (e) { return function (state, actions) {
+        if ((e.keyCode == 38 || e.keyCode == 40) && state.showDropdown) {
+            // Up or Down
+            e.preventDefault();
+            if (e.keyCode == 38) { actions.decrementSelected(); }
+            if (e.keyCode == 40) { actions.incrementSelected(); }
+        }
 
-        var filtered = state.all.filter(function (c) {
-            val = val.toUpperCase();
-            var matchOn = c.matchOn;
-            var index   = matchOn.toUpperCase().indexOf(val);
+        if (e.keyCode == 9 || e.keyCode == 13) {
+            // Enter or Tab
+            if (state.showDropdown) {
+                e.preventDefault();
 
-            var matchFullWord = state.matchFullWord || false
-                ? matchOn[index - 1] === undefined || matchOn[index - 1] === ' '
-                : true
-            ;
+                var inputVal = undefined;
+                if (state.selected !== null) {
+                    var choice = state.filtered[state.selected];
+                    if (state.selectEvent) { state.selectEvent(choice); }
 
-            return index > -1 && matchFullWord;
-        });
+                    inputVal = choice.value;
+                    actions.setInputVal(inputVal);
+                }
 
-        // Constrict to Max Result Count
-        filtered = filtered.slice(0, state.maxResults);
-        actions.setFiltered(filtered);
-    }; },
+                var filtered = filterChoiceList(
+                    inputVal || state.inputVal,
+                    state.all,
+                    state.matchFullWord,
+                    state.maxResults
+                );
 
-    setShowDropdownOnFiltered: function () { return function (state, actions) {
-        if (state.filtered.length)
-            { actions.setShowDropdown(true); }
-        else
-            { actions.setShowDropdown(false); }
-    }; },
-
-    setSelectedOnShowDropdown: function () { return function (state, actions) {
-        if (!state.showDropdown)
-            { actions.setSelected(null); }
-    }; },
-
-    setChoiceOnSelected: function () { return function (state, actions) {
-        if (state.selected !== null) {
-            var choice = state.filtered[state.selected];
-            actions.setChoiceAndInputVal(choice);
+                actions.setFiltered(filtered);
+                actions.setSelected(null);
+                actions.setShowDropdown(false);
+            } else {
+                if (e.keyCode == 13 && state.enterEvent)
+                    { state.enterEvent(e); }
+            }
         }
     }; },
 
@@ -702,6 +698,58 @@ var actions = {
             { actions.setSelected(0); }
         else
             { actions.setSelected(state.selected - 1); }
+    }; },
+
+    /**
+     * ListElement Actions
+     */
+    onListElementMouseDown: function (inputVal) { return function (state, actions) {        
+        var filtered = filterChoiceList(
+            inputVal,
+            state.all,
+            state.matchFullWord,
+            state.maxResults
+        );
+
+        actions.setInputVal(inputVal);
+        actions.setFiltered(filtered);
+        actions.focusInputAndHideDropdown();
+    }; },
+
+    /**
+     * Misc
+     */
+    addToCache: function (args) { return function (state) {
+        var newCache = Object.assign({}, state.cache);
+        newCache[args.key] = [].concat( args.choices );
+        return { cache: newCache };
+    }; },
+
+    /**
+     * Asynchronous Actions
+     */
+    focusInputAndHideDropdown: function () { return function (state, actions) {
+        setTimeout(function () {
+            state.inputRef.focus();
+            actions.setShowDropdown(false);
+        });
+    }; },
+
+    fetchFromSource: function (cb) { return function (state, actions) {
+        var key = state.inputVal.toUpperCase().trim();
+
+        // Check Cache
+        if (state.cache[key]) {
+            cb(state.cache[key]);
+        } else {
+            state.source(state.inputVal, function (res) {
+                var choices = res || [];
+                choices = choices.map(choicePropMap);
+
+                actions.addToCache({ key: key, choices: choices });
+                cb(choices);
+            });
+        }
     }; }
 };
 
@@ -721,28 +769,13 @@ function Otto(root, config, choices) {
             }
         });
 
-        choices = choices.map(function (c) {
-            return Object.assign({}, c, {
-                label:   c.label,
-                matchOn: c.matchOn || c.label,
-                value:   c.value || c.label
-            });
-        });
+        choices = choices.map(choicePropMap);
     }
 
-    // Create Otto Container
-    var container  = document.createElement('div');
-    var inputClass = root.className;
-    var inputId    = root.id;
-
     var state = {
-        width: (root.offsetWidth).toString() + 'px',
         showDropdown: true,
         selected: null,
-
         inputRef: null,
-        inputId:    inputId || '',
-        inputClass: inputClass || '',
         inputVal: '',
         choice: null,
 
@@ -751,13 +784,19 @@ function Otto(root, config, choices) {
         all: choices || [],
 
         // User Configurations
-        matchFullWord: config.matchFullWord || false,
-        minChars: config.minChars || 3,
-        maxResults: config.maxResults || 7,
-        divClass: config.divClass || '',
+        // Classes & Ids
+        inputId: config.inputId || null,
+        inputClass: config.inputClass || null,
+        divClass: config.divClass || null,
         dropdownClass: config.dropdownClass || '',
         ulClass: config.ulClass || '',
         liClass: config.liClass || '',
+
+        emptyMsg: config.emptyMsg || 'No Results.',
+        selectMode: config.selectMode || false,
+        matchFullWord: config.matchFullWord || false,
+        minChars: config.minChars || 3,
+        maxResults: config.maxResults || 7,
         enterEvent: config.enterEvent || null,
         valueEvent: config.valueEvent || null,
         renderItem: config.renderItem || null,
@@ -766,12 +805,8 @@ function Otto(root, config, choices) {
         source: config.source || null
     };
 
-    // Insert Container & Hide native input
-    root.insertAdjacentElement('afterend', container);
-    root.style.display = 'none';
-
     var view = function () { return App(); };
-    this.application = app(state, actions, view, container);
+    this.application = app(state, actions, view, root);
 }
 
 Otto.prototype.isObject = function(x) {

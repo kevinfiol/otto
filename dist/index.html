@@ -23,14 +23,14 @@
         .otto-li { padding: 6px; margin: 0; }
         .otto-selected, .otto-li:hover { background-color: #f2f2f2; }
         .otto-div { border: 1px solid lightgrey; -webkit-transition: all 0.5s; transition: all 0.5s; }
-        .otto-demo { width: 100%; margin: 0 auto; height: 2.2em; padding: 0.5em; font-size: 1em; }
+        .otto-demo { width: 100%; margin: 0 auto; height: 2.2em; padding: 1.5em 0.5em; font-size: 1em; }
     </style>
 </head>
 
 <body>
 	<div class="container">
         <div class="demo">
-            <input id="demo1" class="otto-demo" type="text"></input>
+            <div id="demo1"></div>
             <!-- <input id="demo2" class="otto-demo" type="text"></input> -->
         </div>
     </div>
@@ -90,6 +90,8 @@
                     };
 
                     var demo1 = new Otto(document.getElementById('demo1'), {
+                        // selectMode: true,
+                        inputClass: 'otto-demo',
                         minChars: 3,
                         maxResults: 4,
                         // enterEvent: e => console.log('this is the enter event: ', e),
