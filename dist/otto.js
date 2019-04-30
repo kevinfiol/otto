@@ -434,6 +434,10 @@ var Otto = (function () {
   };
 
   var SelectInput = function () { return function (state, actions) {
+      var oninput = function (e) {
+          var val = e.target.value;
+          actions.setInputVal(val);
+      };
 
       var onfocus = function () {
           actions.setShowDropdown(true);
@@ -443,16 +447,34 @@ var Otto = (function () {
           actions.setShowDropdown(false);
       };
 
+      var oncreate = function (dom) {
+          actions.setInputRef(dom);
+
+          // Register Custom Event Listeners
+          if (state.events) {
+              Object.keys(state.events).forEach(function (key) {
+                  dom.addEventListener(key, state.events[key]);
+              });
+          }
+      };
+
       return h('input', {
+          id: state.inputId,
           class: state.inputClass,
           autocomplete: 'off',
           value: state.inputVal,
+          oninput: oninput,
           onfocus: onfocus,
-          onblur: onblur
+          oncreate: oncreate,
+          onblur: onblur,
+          style: { boxSizing: 'border-box' }
       });
   }; };
 
-  var Input = function () { return function (state, actions) {
+  var Input = function (ref) {
+      var key = ref.key;
+
+      return function (state, actions) {
       var onfocus = function () {
           if (state.filtered.length)
               { actions.setShowDropdown(true); }
@@ -477,6 +499,7 @@ var Otto = (function () {
       };
 
       return h('input', {
+          key: key,
           id: state.inputId,
           class: state.inputClass,
           autocomplete: 'off',
@@ -488,54 +511,69 @@ var Otto = (function () {
           oncreate: oncreate,
           style: { boxSizing: 'border-box' }
       });
-  }; };
+  };
+  };
 
   var Dropdown = function (ref, children) {
       var dropdownClass = ref.dropdownClass;
+      var isSelectMode = ref.isSelectMode;
 
       return h('div', {
           class: ("otto-div " + dropdownClass).trim(),
           style: {
+              maxHeight: isSelectMode ? '300px' : null,
               width: '100%',
               backgroundColor: 'white',
               overflow: 'hidden',
+              overflowY: isSelectMode ? 'auto' : null,
               zIndex: '99'
           }
       }, children);
   };
 
-  var ListElement = function (choice, isSelected) { return function (state, actions) {
+  var UnorderedList = function (ref, children) {
+      var ulClass = ref.ulClass;
+
+      return h('ul', { class: ("otto-ul " + ulClass).trim() },
+          children
+      );
+  };
+
+  var ListElement = function (ref) {
+      var liClass = ref.liClass;
+      var choice = ref.choice;
+      var isSelected = ref.isSelected;
+      var inputVal = ref.inputVal;
+      var renderItem = ref.renderItem;
+      var onmousedown = ref.onmousedown;
+
       var attrs = {
           key: choice.value,
-          class: ("otto-li " + (state.liClass) + " " + (isSelected ? 'otto-selected' : '')).trim(),
+          class: ("otto-li " + liClass + " " + (isSelected ? 'otto-selected' : '')).trim(),
           style: { listStyleType: 'none', cursor: 'default' },
-          onmousedown: function () { return actions.onListElementMouseDown(choice.value); }
+          onmousedown: function () { return onmousedown(choice.value); }
       };
 
       /**
        * If Custom Render Method
        */
-      if (state.renderItem) {
-          attrs.oncreate = function (e) { return e.innerHTML = state.renderItem(choice, state.inputVal); };
+      if (renderItem) {
+          attrs.oncreate = function (e) { return e.innerHTML = renderItem(choice, inputVal); };
           return h('li', attrs);
       }
 
-      // This check is to prevent rendering of choices in between XHR list gets
-      if (choice.matchOn.toUpperCase().indexOf(state.inputVal.toUpperCase()) > -1) {
-          var children;
+      var children;
 
-          if (choice.label.toUpperCase().indexOf(state.inputVal.toUpperCase()) > -1) {
-              children = createEmphasizedText(choice, state.inputVal);
-          } else {
-              // In case choice.matchOn is different from choice.label
-              children = choice.label;
-          }
-          
-          return h('li', attrs, children);
+      if (choice.label.toUpperCase().indexOf(inputVal.toUpperCase()) > -1) {
+          children = createEmphasizedText(choice, inputVal);
+      } else if (choice.label !== choice.matchOn) {
+          children = createMatchedOnText(choice);
+      } else {
+          children = h('i', { style: { opacity: '0.4' } }, choice.label);
       }
-
-      return null;
-  }; };
+      
+      return h('li', attrs, children);
+  };
 
   function createEmphasizedText(choice, inputVal) {
       var emLabel   = removeHTML(choice.label);
@@ -551,44 +589,106 @@ var Otto = (function () {
       return [term.beg, h('b', {}, term.mid), term.end];
   }
 
+  function createMatchedOnText(choice) {
+      return [
+          choice.label,
+          ' ',
+          h('em', {
+              style: { opacity: '0.6' }
+          }, ("(" + (choice.matchOn) + ")"))
+      ];
+  }
+
   function removeHTML(s) {
       return s.replace(/&/g, '').replace(/</g, '').replace(/>/g, '');
   }
 
-  var UnorderedList = function (ref) {
-      var ulClass = ref.ulClass;
-      var list = ref.list;
-      var selected = ref.selected;
-      var emptyMsg = ref.emptyMsg;
+  var dotSize = '6';
 
-      return h('ul', { class: ("otto-ul " + ulClass).trim() }, 
-          list.length
-              ? list.map(function (choice, index) {
-                  var isSelected = (index === selected);
-                  return ListElement(choice, isSelected);
-              })
-              : h('li', { style: { padding: '0.3em' } }, emptyMsg)
-          
-      );
+  var Dot = function (opacity) { return h('div', {
+      style: {
+          borderRadius: '2em',
+          margin: '0 0.1em',
+          display: 'inline-block',
+          height: dotSize + 'px',
+          width: dotSize + 'px',
+          background: 'black',
+          opacity: opacity || '0.1',
+          transition: 'all 0.3s ease'
+      }
+  }); };
+
+  var Spinner = function (ref) {
+      var key = ref.key;
+      var inputRef = ref.inputRef;
+
+      return h('div', {
+          key: key,
+          style: {
+              position: 'absolute',
+              display: 'flex',
+              alignItems: 'center',
+              top: ((inputRef.offsetHeight / 2) - (dotSize / 2)) + 'px',
+              right: '0.5em',
+          },
+          oncreate: function (div) {
+              var current = 1;
+              var children = div.childNodes;
+
+              setInterval(function () {
+                  for (var i = 0; i < children.length; i++) {
+                      // Reset Opacities
+                      children[i].style.opacity = '0.1';
+                  }
+
+                  if (current === children.length)
+                      { current = 0; }
+
+                  children[current].style.opacity = '0.4';
+                  current += 1;
+              }, 300);
+          }
+      }, [Dot('0.4'), Dot(), Dot()]);
   };
 
-  var App = function () { return function (state) {
-      return h('div', { class: state.divClass }, [
-          state.selectMode
-              ? SelectInput()
-              : Input()
-          ,
+  var App = function () { return function (state, actions) {
+      // Choices List
+      var list = state.selectMode ? state.all : state.filtered;
+
+      // List Element Action
+      var onListElementMouseDown = actions.onListElementMouseDown;
+
+      return h('div', { class: state.divClass },
+          h('div', { style: { position: 'relative' } },
+              (state.isFetching && state.inputRef !== null)
+                  ? Spinner({ key: 'spinner', inputRef: state.inputRef })
+                  : null
+              ,
+
+              state.selectMode
+                  ? SelectInput({ key: 'input' })
+                  : Input({ key: 'input' })
+              
+          ),
 
           state.showDropdown
-              ? Dropdown({ dropdownClass: state.dropdownClass, width: state.width },
-                  UnorderedList({
-                      ulClass: state.ulClass,
-                      list: state.filtered,
-                      selected: state.selected,
-                      emptyMsg: state.emptyMsg
-                  })
+              ? Dropdown({ dropdownClass: state.dropdownClass, isSelectMode: state.selectMode },
+                  UnorderedList({ ulClass: state.ulClass },
+                      list.map(function (c, i) {
+                          return ListElement({
+                              liClass: state.liClass,
+                              choice: c,
+                              isSelected: state.selected === i,
+                              inputVal: state.inputVal,
+                              renderItem: state.renderItem,
+                              onmousedown: onListElementMouseDown
+                          });
+                      })
+                  )
               )
-              : null ]);
+              : null
+          
+      );
   }; };
 
   var actions = {
@@ -600,6 +700,8 @@ var Otto = (function () {
       setFiltered: function (filtered) { return ({ filtered: filtered }); },
 
       setShowDropdown: function (showDropdown) { return ({ showDropdown: showDropdown }); },
+
+      setIsFetching: function (isFetching) { return ({ isFetching: isFetching }); },
 
       setSelected: function (selected) { return ({ selected: selected }); },
 
@@ -745,11 +847,14 @@ var Otto = (function () {
           if (state.cache[key]) {
               cb(state.cache[key]);
           } else {
+              actions.setIsFetching(true);
+
               state.source(state.inputVal, function (res) {
                   var choices = res || [];
                   choices = choices.map(choicePropMap);
 
                   actions.addToCache({ key: key, choices: choices });
+                  actions.setIsFetching(false);
                   cb(choices);
               });
           }
@@ -776,7 +881,8 @@ var Otto = (function () {
       }
 
       var state = {
-          showDropdown: true,
+          showDropdown: false,
+          isFetching: false,
           selected: null,
           inputRef: null,
           inputVal: '',
