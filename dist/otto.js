@@ -407,47 +407,52 @@ var Otto = (function () {
     }
   }
 
-  var filterChoiceList = function (val, list, matchFullWord, maxResults) {
-      var filtered = list.filter(function (c) {
-          var v = val.toUpperCase();
-          var matchOn = c.matchOn;
-          var index = matchOn.toUpperCase().indexOf(v);
+  var ClearInputBtn = function (ref) {
+      var inputRef = ref.inputRef;
+      var clearInput = ref.clearInput;
 
-          var wordPassesTest = matchFullWord || false
-              ? matchOn[index - 1] === undefined || matchOn[index - 1] === ' '
-              : true
-          ;
-
-          return index > -1 && wordPassesTest;
+      return h('div', {
+          key: 'clearBtn',
+          class: 'otto-clear',
+          onclick: clearInput,
+          oncreate: function (el) { return el.innerHTML = '&times;'; },
+          style: {
+              opacity: '0.7',
+              position: 'absolute',
+              display: 'flex',
+              alignItems: 'center',
+              top: ((inputRef.offsetHeight / 2) - (22 / 2)) + 'px',
+              right: '0.6em',
+              cursor: 'pointer',
+              fontFamily: 'sans-serif',
+              fontWeight: '400',
+              fontSize: '20px',
+              height: '22px'
+          }
       });
-
-      filtered = filtered.slice(0, maxResults);
-      return filtered;
   };
 
-  var choicePropMap = function (choice) {
-      return Object.assign({}, choice, {
-          label: choice.label,
-          matchOn: choice.matchOn || choice.label,
-          value: choice.value || choice.label
-      });
+  var EmptyListElement = function (ref) {
+      var emptyMsg = ref.emptyMsg;
+
+      return h('li', {
+          style: {
+              listStyleType: 'none',
+              textAlign: 'center',
+              padding: '0.5em',
+              opacity: '0.5'
+          }
+      }, emptyMsg);
   };
 
   var SelectInput = function () { return function (state, actions) {
-      var oninput = function (e) {
-          var val = e.target.value;
-          actions.setInputVal(val);
-      };
-
-      var onfocus = function () {
-          actions.setShowDropdown(true);
-      };
-
       var onblur = function () {
           actions.setShowDropdown(false);
+          actions.onSelectInputBlur();
       };
 
       var oncreate = function (dom) {
+          actions.setFiltered(state.all);
           actions.setInputRef(dom);
 
           // Register Custom Event Listeners
@@ -459,22 +464,21 @@ var Otto = (function () {
       };
 
       return h('input', {
+          key: 'input',
           id: state.inputId,
           class: state.inputClass,
           autocomplete: 'off',
           value: state.inputVal,
-          oninput: oninput,
-          onfocus: onfocus,
+          oninput: actions.onSelectInput,
+          onmousedown: actions.onSelectInputMousedown,
+          onkeydown: actions.onInputKeydown,
           oncreate: oncreate,
           onblur: onblur,
           style: { boxSizing: 'border-box' }
       });
   }; };
 
-  var Input = function (ref) {
-      var key = ref.key;
-
-      return function (state, actions) {
+  var Input = function () { return function (state, actions) {
       var onfocus = function () {
           if (state.filtered.length)
               { actions.setShowDropdown(true); }
@@ -499,7 +503,7 @@ var Otto = (function () {
       };
 
       return h('input', {
-          key: key,
+          key: 'input',
           id: state.inputId,
           class: state.inputClass,
           autocomplete: 'off',
@@ -511,8 +515,7 @@ var Otto = (function () {
           oncreate: oncreate,
           style: { boxSizing: 'border-box' }
       });
-  };
-  };
+  }; };
 
   var Dropdown = function (ref, children) {
       var dropdownClass = ref.dropdownClass;
@@ -554,6 +557,10 @@ var Otto = (function () {
           onmousedown: function () { return onmousedown(choice.value); }
       };
 
+      attrs.onupdate = function (li) {
+          if (isSelected) { li.scrollIntoView({ block: 'nearest' }); }
+      };
+
       /**
        * If Custom Render Method
        */
@@ -566,10 +573,8 @@ var Otto = (function () {
 
       if (choice.label.toUpperCase().indexOf(inputVal.toUpperCase()) > -1) {
           children = createEmphasizedText(choice, inputVal);
-      } else if (choice.label !== choice.matchOn) {
-          children = createMatchedOnText(choice);
       } else {
-          children = h('i', { style: { opacity: '0.4' } }, choice.label);
+          children = h('i', { style: { opacity: '0.5' } }, choice.label);
       }
       
       return h('li', attrs, children);
@@ -589,107 +594,147 @@ var Otto = (function () {
       return [term.beg, h('b', {}, term.mid), term.end];
   }
 
-  function createMatchedOnText(choice) {
-      return [
-          choice.label,
-          ' ',
-          h('em', {
-              style: { opacity: '0.6' }
-          }, ("(" + (choice.matchOn) + ")"))
-      ];
-  }
-
   function removeHTML(s) {
       return s.replace(/&/g, '').replace(/</g, '').replace(/>/g, '');
   }
 
   var dotSize = '6';
+  var loOpacity = '0.3';
+  var hiOpacity = '0.7';
 
   var Dot = function (opacity) { return h('div', {
+      className: 'otto-spinner',
       style: {
           borderRadius: '2em',
           margin: '0 0.1em',
           display: 'inline-block',
           height: dotSize + 'px',
           width: dotSize + 'px',
-          background: 'black',
-          opacity: opacity || '0.1',
+          opacity: opacity || loOpacity,
           transition: 'all 0.3s ease'
       }
   }); };
 
   var Spinner = function (ref) {
-      var key = ref.key;
       var inputRef = ref.inputRef;
+      var setTimer = ref.setTimer;
+      var clearTimer = ref.clearTimer;
 
       return h('div', {
-          key: key,
+          key: 'spinner',
           style: {
               position: 'absolute',
               display: 'flex',
               alignItems: 'center',
               top: ((inputRef.offsetHeight / 2) - (dotSize / 2)) + 'px',
-              right: '0.5em',
+              right: '2.6em',
+          },
+          ondestroy: function () {
+              clearTimer();
           },
           oncreate: function (div) {
               var current = 1;
               var children = div.childNodes;
 
-              setInterval(function () {
+              setTimer(setInterval(function () {
                   for (var i = 0; i < children.length; i++) {
                       // Reset Opacities
-                      children[i].style.opacity = '0.1';
+                      children[i].style.opacity = loOpacity;
                   }
 
                   if (current === children.length)
                       { current = 0; }
 
-                  children[current].style.opacity = '0.4';
+                  children[current].style.opacity = hiOpacity;
                   current += 1;
-              }, 300);
+              }, 300));
           }
-      }, [Dot('0.4'), Dot(), Dot()]);
+      }, [Dot(hiOpacity), Dot(), Dot()]);
   };
 
   var App = function () { return function (state, actions) {
-      // Choices List
-      var list = state.selectMode ? state.all : state.filtered;
+      // State
+      var list = state.filtered;
 
-      // List Element Action
-      var onListElementMouseDown = actions.onListElementMouseDown;
+      // Computed
+      var showClearBtn = (state.showClearBtn && state.inputVal && state.inputRef !== null);
+      var showSpinner  = (state.showSpinner && state.isFetching && state.inputRef !== null);
+      var showEmptyMsg = (state.selectMode && list.length < 1);
+
+      var clearInput = function () {
+          actions.setInputVal('');
+          actions.focusInputAndHideDropdown();
+      };
 
       return h('div', { class: state.divClass },
           h('div', { style: { position: 'relative' } },
-              (state.isFetching && state.inputRef !== null)
-                  ? Spinner({ key: 'spinner', inputRef: state.inputRef })
-                  : null
+              state.selectMode
+                  ? SelectInput()
+                  : Input()
               ,
 
-              state.selectMode
-                  ? SelectInput({ key: 'input' })
-                  : Input({ key: 'input' })
+              showClearBtn &&
+                  ClearInputBtn({ inputRef: state.inputRef, clearInput: clearInput })
+              ,
+
+              showSpinner &&
+                  Spinner({
+                      inputRef: state.inputRef,
+                      setTimer: actions.setTimer,
+                      clearTimer: actions.clearTimer
+                  })
               
           ),
 
-          state.showDropdown
-              ? Dropdown({ dropdownClass: state.dropdownClass, isSelectMode: state.selectMode },
+          state.showDropdown &&
+              Dropdown({ dropdownClass: state.dropdownClass, isSelectMode: state.selectMode },
                   UnorderedList({ ulClass: state.ulClass },
-                      list.map(function (c, i) {
-                          return ListElement({
-                              liClass: state.liClass,
-                              choice: c,
-                              isSelected: state.selected === i,
-                              inputVal: state.inputVal,
-                              renderItem: state.renderItem,
-                              onmousedown: onListElementMouseDown
-                          });
-                      })
+                      showEmptyMsg
+                          ? EmptyListElement({ emptyMsg: state.emptyMsg })
+                          : list.map(function (c, i) {
+                              return ListElement({
+                                  liClass: state.liClass,
+                                  choice: c,
+                                  isSelected: state.selected === i,
+                                  inputVal: state.inputVal,
+                                  renderItem: state.renderItem,
+                                  onmousedown: actions.onListElementMouseDown
+                              });
+                          })
+                      
                   )
               )
-              : null
           
       );
   }; };
+
+  var filterChoiceList = function (val, list, matchFullWord, maxResults) {
+      var v = val.toUpperCase();
+
+      var filtered = list.filter(function (c) {
+          var label = c.label;
+          var index = label.toUpperCase().indexOf(v);
+
+          var wordPassesTest = matchFullWord || false
+              ? label[index - 1] === undefined || label[index - 1] === ' '
+              : true
+          ;
+
+          return index > -1 && wordPassesTest;
+      });
+
+      if (maxResults !== undefined)
+          { filtered = filtered.slice(0, maxResults); }
+
+      return filtered;
+  };
+
+  var choicePropMap = function (choice) {
+      return Object.assign({}, choice, {
+          label: choice.label,
+          value: choice.value || choice.label
+      });
+  };
 
   var actions = {
       /**
@@ -707,10 +752,18 @@ var Otto = (function () {
 
       setInputRef: function (inputRef) { return ({ inputRef: inputRef }); },
 
+      setTimer: function (timer) { return ({ timer: timer }); },
+
       setInputVal: function (inputVal) { return function (state) {
           if (state.valueEvent)
               { state.valueEvent(inputVal); }
           return { inputVal: inputVal };
+      }; },
+
+      addToCache: function (args) { return function (state) {
+          var newCache = Object.assign({}, state.cache);
+          newCache[args.key] = [].concat( args.choices );
+          return { cache: newCache };
       }; },
 
       /**
@@ -790,9 +843,7 @@ var Otto = (function () {
               { actions.setSelected(null); }
           else if (state.selected === null)
               { actions.setSelected(0); }
-          else if (state.selected === state.filtered.length - 1)
-              { return; }
-          else
+          else if (state.selected !== state.filtered.length - 1)
               { actions.setSelected(state.selected + 1); }
       }; },
 
@@ -806,9 +857,63 @@ var Otto = (function () {
       }; },
 
       /**
+       * SelectInput Actions
+       */
+      onSelectInput: function (e) { return function (state, actions) {
+          var inputVal = e.target.value;
+          actions.setInputVal(inputVal);
+
+          if (state.source) {
+              actions.fetchFromSource(function (choices) {
+                  var filtered = filterChoiceList(inputVal, choices, state.matchFullWord);
+                  actions.setAll(choices);
+                  actions.setFiltered(filtered);
+              });
+          } else {
+              if (inputVal.trim() === '') {
+                  actions.setFiltered(state.all);
+              } else {
+                  var filtered = filterChoiceList(inputVal, state.all, state.matchFullWord);
+                  actions.setFiltered(filtered);
+              }
+          }
+      }; },
+
+      onSelectInputMousedown: function () { return function (state, actions) {
+          if (state.source) {
+              actions.fetchFromSource(function (choices) {
+                  actions.setAll(choices);
+                  actions.setFiltered(choices);
+                  actions.setShowDropdown(true);
+              });
+          } else {
+              actions.setShowDropdown(true);
+          }
+      }; },
+
+      onSelectInputBlur: function () { return function (state, actions) {
+          var inputVal = state.inputVal;
+
+          // Check if inputVal exists in list
+          var value = null;
+
+          for (var i = 0; i < state.all.length; i++) {
+              if (state.all[i].value.toUpperCase() === inputVal.trim().toUpperCase()) {
+                  value = state.all[i].value;
+                  break;
+              }
+          }
+
+          if (!value) { actions.setInputVal(''); }
+          else { actions.setInputVal(value); }
+
+          actions.setFiltered(state.all);
+      }; },
+
+      /**
        * ListElement Actions
        */
-      onListElementMouseDown: function (inputVal) { return function (state, actions) {        
+      onListElementMouseDown: function (inputVal) { return function (state, actions) {
           var filtered = filterChoiceList(
               inputVal,
               state.all,
@@ -824,10 +929,9 @@ var Otto = (function () {
       /**
        * Misc
        */
-      addToCache: function (args) { return function (state) {
-          var newCache = Object.assign({}, state.cache);
-          newCache[args.key] = [].concat( args.choices );
-          return { cache: newCache };
+
+      clearTimer: function () { return function (state) {
+          clearInterval(state.timer);
       }; },
 
       /**
@@ -877,16 +981,31 @@ var Otto = (function () {
               }
           });
 
-          choices = choices.map(choicePropMap);
+          choices = this.normalizeChoices(choices);
       }
 
-      var state = {
+      var state = this.createState(config, choices);
+      var view = function () { return App(); };
+
+      this.actions = app(state, actions, view, root);
+  }
+
+  Otto.prototype.isObject = function(x) {
+      return (x !== null) && (x.constructor === Object);
+  };
+
+  Otto.prototype.normalizeChoices = function(choices) {
+      return choices.map(choicePropMap);
+  };
+
+  Otto.prototype.createState = function(config, choices) {
+      return {
           showDropdown: false,
           isFetching: false,
           selected: null,
           inputRef: null,
           inputVal: '',
-          choice: null,
+          timer: undefined,
 
           cache: {},
           filtered: [],
@@ -901,7 +1020,9 @@ var Otto = (function () {
           ulClass: config.ulClass || '',
           liClass: config.liClass || '',
 
-          emptyMsg: config.emptyMsg || 'No Results.',
+          showClearBtn: config.showClearBtn || true,
+          showSpinner: config.showSpinner || true,
+          emptyMsg: config.emptyMsg || 'No Options',
           selectMode: config.selectMode || false,
           matchFullWord: config.matchFullWord || false,
           minChars: config.minChars || 3,
@@ -913,13 +1034,6 @@ var Otto = (function () {
           events: config.events || null,
           source: config.source || null
       };
-
-      var view = function () { return App(); };
-      this.application = app(state, actions, view, root);
-  }
-
-  Otto.prototype.isObject = function(x) {
-      return (x !== null) && (x.constructor === Object);
   };
 
   return Otto;

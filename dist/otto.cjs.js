@@ -1,450 +1,53 @@
 'use strict';
 
-function h(name, attributes) {
-  var arguments$1 = arguments;
+var hyperapp = require('hyperapp');
 
-  var rest = [];
-  var children = [];
-  var length = arguments.length;
+var ClearInputBtn = function (ref) {
+    var inputRef = ref.inputRef;
+    var clearInput = ref.clearInput;
 
-  while (length-- > 2) { rest.push(arguments$1[length]); }
-
-  while (rest.length) {
-    var node = rest.pop();
-    if (node && node.pop) {
-      for (length = node.length; length--; ) {
-        rest.push(node[length]);
-      }
-    } else if (node != null && node !== true && node !== false) {
-      children.push(node);
-    }
-  }
-
-  return typeof name === "function"
-    ? name(attributes || {}, children)
-    : {
-        nodeName: name,
-        attributes: attributes || {},
-        children: children,
-        key: attributes && attributes.key
-      }
-}
-
-function app(state, actions, view, container) {
-  var map = [].map;
-  var rootElement = (container && container.children[0]) || null;
-  var oldNode = rootElement && recycleElement(rootElement);
-  var lifecycle = [];
-  var skipRender;
-  var isRecycling = true;
-  var globalState = clone(state);
-  var wiredActions = wireStateToActions([], globalState, clone(actions));
-
-  scheduleRender();
-
-  return wiredActions
-
-  function recycleElement(element) {
-    return {
-      nodeName: element.nodeName.toLowerCase(),
-      attributes: {},
-      children: map.call(element.childNodes, function(element) {
-        return element.nodeType === 3 // Node.TEXT_NODE
-          ? element.nodeValue
-          : recycleElement(element)
-      })
-    }
-  }
-
-  function resolveNode(node) {
-    return typeof node === "function"
-      ? resolveNode(node(globalState, wiredActions))
-      : node != null
-        ? node
-        : ""
-  }
-
-  function render() {
-    skipRender = !skipRender;
-
-    var node = resolveNode(view);
-
-    if (container && !skipRender) {
-      rootElement = patch(container, rootElement, oldNode, (oldNode = node));
-    }
-
-    isRecycling = false;
-
-    while (lifecycle.length) { lifecycle.pop()(); }
-  }
-
-  function scheduleRender() {
-    if (!skipRender) {
-      skipRender = true;
-      setTimeout(render);
-    }
-  }
-
-  function clone(target, source) {
-    var out = {};
-
-    for (var i in target) { out[i] = target[i]; }
-    for (var i in source) { out[i] = source[i]; }
-
-    return out
-  }
-
-  function setPartialState(path, value, source) {
-    var target = {};
-    if (path.length) {
-      target[path[0]] =
-        path.length > 1
-          ? setPartialState(path.slice(1), value, source[path[0]])
-          : value;
-      return clone(source, target)
-    }
-    return value
-  }
-
-  function getPartialState(path, source) {
-    var i = 0;
-    while (i < path.length) {
-      source = source[path[i++]];
-    }
-    return source
-  }
-
-  function wireStateToActions(path, state, actions) {
-    for (var key in actions) {
-      typeof actions[key] === "function"
-        ? (function(key, action) {
-            actions[key] = function(data) {
-              var result = action(data);
-
-              if (typeof result === "function") {
-                result = result(getPartialState(path, globalState), actions);
-              }
-
-              if (
-                result &&
-                result !== (state = getPartialState(path, globalState)) &&
-                !result.then // !isPromise
-              ) {
-                scheduleRender(
-                  (globalState = setPartialState(
-                    path,
-                    clone(state, result),
-                    globalState
-                  ))
-                );
-              }
-
-              return result
-            };
-          })(key, actions[key])
-        : wireStateToActions(
-            path.concat(key),
-            (state[key] = clone(state[key])),
-            (actions[key] = clone(actions[key]))
-          );
-    }
-
-    return actions
-  }
-
-  function getKey(node) {
-    return node ? node.key : null
-  }
-
-  function eventListener(event) {
-    return event.currentTarget.events[event.type](event)
-  }
-
-  function updateAttribute(element, name, value, oldValue, isSvg) {
-    if (name === "key") ; else if (name === "style") {
-      if (typeof value === "string") {
-        element.style.cssText = value;
-      } else {
-        if (typeof oldValue === "string") { oldValue = element.style.cssText = ""; }
-        for (var i in clone(oldValue, value)) {
-          var style = value == null || value[i] == null ? "" : value[i];
-          if (i[0] === "-") {
-            element.style.setProperty(i, style);
-          } else {
-            element.style[i] = style;
-          }
+    return hyperapp.h('div', {
+        key: 'clearBtn',
+        class: 'otto-clear',
+        onclick: clearInput,
+        oncreate: function (el) { return el.innerHTML = '&times;'; },
+        style: {
+            opacity: '0.7',
+            position: 'absolute',
+            display: 'flex',
+            alignItems: 'center',
+            top: ((inputRef.offsetHeight / 2) - (22 / 2)) + 'px',
+            right: '0.6em',
+            cursor: 'pointer',
+            fontFamily: 'sans-serif',
+            fontWeight: '400',
+            fontSize: '20px',
+            height: '22px'
         }
-      }
-    } else {
-      if (name[0] === "o" && name[1] === "n") {
-        name = name.slice(2);
-
-        if (element.events) {
-          if (!oldValue) { oldValue = element.events[name]; }
-        } else {
-          element.events = {};
-        }
-
-        element.events[name] = value;
-
-        if (value) {
-          if (!oldValue) {
-            element.addEventListener(name, eventListener);
-          }
-        } else {
-          element.removeEventListener(name, eventListener);
-        }
-      } else if (
-        name in element &&
-        name !== "list" &&
-        name !== "type" &&
-        name !== "draggable" &&
-        name !== "spellcheck" &&
-        name !== "translate" &&
-        !isSvg
-      ) {
-        element[name] = value == null ? "" : value;
-      } else if (value != null && value !== false) {
-        element.setAttribute(name, value);
-      }
-
-      if (value == null || value === false) {
-        element.removeAttribute(name);
-      }
-    }
-  }
-
-  function createElement(node, isSvg) {
-    var element =
-      typeof node === "string" || typeof node === "number"
-        ? document.createTextNode(node)
-        : (isSvg = isSvg || node.nodeName === "svg")
-          ? document.createElementNS(
-              "http://www.w3.org/2000/svg",
-              node.nodeName
-            )
-          : document.createElement(node.nodeName);
-
-    var attributes = node.attributes;
-    if (attributes) {
-      if (attributes.oncreate) {
-        lifecycle.push(function() {
-          attributes.oncreate(element);
-        });
-      }
-
-      for (var i = 0; i < node.children.length; i++) {
-        element.appendChild(
-          createElement(
-            (node.children[i] = resolveNode(node.children[i])),
-            isSvg
-          )
-        );
-      }
-
-      for (var name in attributes) {
-        updateAttribute(element, name, attributes[name], null, isSvg);
-      }
-    }
-
-    return element
-  }
-
-  function updateElement(element, oldAttributes, attributes, isSvg) {
-    for (var name in clone(oldAttributes, attributes)) {
-      if (
-        attributes[name] !==
-        (name === "value" || name === "checked"
-          ? element[name]
-          : oldAttributes[name])
-      ) {
-        updateAttribute(
-          element,
-          name,
-          attributes[name],
-          oldAttributes[name],
-          isSvg
-        );
-      }
-    }
-
-    var cb = isRecycling ? attributes.oncreate : attributes.onupdate;
-    if (cb) {
-      lifecycle.push(function() {
-        cb(element, oldAttributes);
-      });
-    }
-  }
-
-  function removeChildren(element, node) {
-    var attributes = node.attributes;
-    if (attributes) {
-      for (var i = 0; i < node.children.length; i++) {
-        removeChildren(element.childNodes[i], node.children[i]);
-      }
-
-      if (attributes.ondestroy) {
-        attributes.ondestroy(element);
-      }
-    }
-    return element
-  }
-
-  function removeElement(parent, element, node) {
-    function done() {
-      parent.removeChild(removeChildren(element, node));
-    }
-
-    var cb = node.attributes && node.attributes.onremove;
-    if (cb) {
-      cb(element, done);
-    } else {
-      done();
-    }
-  }
-
-  function patch(parent, element, oldNode, node, isSvg) {
-    if (node === oldNode) ; else if (oldNode == null || oldNode.nodeName !== node.nodeName) {
-      var newElement = createElement(node, isSvg);
-      parent.insertBefore(newElement, element);
-
-      if (oldNode != null) {
-        removeElement(parent, element, oldNode);
-      }
-
-      element = newElement;
-    } else if (oldNode.nodeName == null) {
-      element.nodeValue = node;
-    } else {
-      updateElement(
-        element,
-        oldNode.attributes,
-        node.attributes,
-        (isSvg = isSvg || node.nodeName === "svg")
-      );
-
-      var oldKeyed = {};
-      var newKeyed = {};
-      var oldElements = [];
-      var oldChildren = oldNode.children;
-      var children = node.children;
-
-      for (var i = 0; i < oldChildren.length; i++) {
-        oldElements[i] = element.childNodes[i];
-
-        var oldKey = getKey(oldChildren[i]);
-        if (oldKey != null) {
-          oldKeyed[oldKey] = [oldElements[i], oldChildren[i]];
-        }
-      }
-
-      var i = 0;
-      var k = 0;
-
-      while (k < children.length) {
-        var oldKey = getKey(oldChildren[i]);
-        var newKey = getKey((children[k] = resolveNode(children[k])));
-
-        if (newKeyed[oldKey]) {
-          i++;
-          continue
-        }
-
-        if (newKey != null && newKey === getKey(oldChildren[i + 1])) {
-          if (oldKey == null) {
-            removeElement(element, oldElements[i], oldChildren[i]);
-          }
-          i++;
-          continue
-        }
-
-        if (newKey == null || isRecycling) {
-          if (oldKey == null) {
-            patch(element, oldElements[i], oldChildren[i], children[k], isSvg);
-            k++;
-          }
-          i++;
-        } else {
-          var keyedNode = oldKeyed[newKey] || [];
-
-          if (oldKey === newKey) {
-            patch(element, keyedNode[0], keyedNode[1], children[k], isSvg);
-            i++;
-          } else if (keyedNode[0]) {
-            patch(
-              element,
-              element.insertBefore(keyedNode[0], oldElements[i]),
-              keyedNode[1],
-              children[k],
-              isSvg
-            );
-          } else {
-            patch(element, oldElements[i], null, children[k], isSvg);
-          }
-
-          newKeyed[newKey] = children[k];
-          k++;
-        }
-      }
-
-      while (i < oldChildren.length) {
-        if (getKey(oldChildren[i]) == null) {
-          removeElement(element, oldElements[i], oldChildren[i]);
-        }
-        i++;
-      }
-
-      for (var i in oldKeyed) {
-        if (!newKeyed[i]) {
-          removeElement(element, oldKeyed[i][0], oldKeyed[i][1]);
-        }
-      }
-    }
-    return element
-  }
-}
-
-var filterChoiceList = function (val, list, matchFullWord, maxResults) {
-    var filtered = list.filter(function (c) {
-        var v = val.toUpperCase();
-        var matchOn = c.matchOn;
-        var index = matchOn.toUpperCase().indexOf(v);
-
-        var wordPassesTest = matchFullWord || false
-            ? matchOn[index - 1] === undefined || matchOn[index - 1] === ' '
-            : true
-        ;
-
-        return index > -1 && wordPassesTest;
     });
-
-    filtered = filtered.slice(0, maxResults);
-    return filtered;
 };
 
-var choicePropMap = function (choice) {
-    return Object.assign({}, choice, {
-        label: choice.label,
-        matchOn: choice.matchOn || choice.label,
-        value: choice.value || choice.label
-    });
+var EmptyListElement = function (ref) {
+    var emptyMsg = ref.emptyMsg;
+
+    return hyperapp.h('li', {
+        style: {
+            listStyleType: 'none',
+            textAlign: 'center',
+            padding: '0.5em',
+            opacity: '0.5'
+        }
+    }, emptyMsg);
 };
 
 var SelectInput = function () { return function (state, actions) {
-    var oninput = function (e) {
-        var val = e.target.value;
-        actions.setInputVal(val);
-    };
-
-    var onfocus = function () {
-        actions.setShowDropdown(true);
-    };
-
     var onblur = function () {
         actions.setShowDropdown(false);
+        actions.onSelectInputBlur();
     };
 
     var oncreate = function (dom) {
+        actions.setFiltered(state.all);
         actions.setInputRef(dom);
 
         // Register Custom Event Listeners
@@ -455,23 +58,22 @@ var SelectInput = function () { return function (state, actions) {
         }
     };
 
-    return h('input', {
+    return hyperapp.h('input', {
+        key: 'input',
         id: state.inputId,
         class: state.inputClass,
         autocomplete: 'off',
         value: state.inputVal,
-        oninput: oninput,
-        onfocus: onfocus,
+        oninput: actions.onSelectInput,
+        onmousedown: actions.onSelectInputMousedown,
+        onkeydown: actions.onInputKeydown,
         oncreate: oncreate,
         onblur: onblur,
         style: { boxSizing: 'border-box' }
     });
 }; };
 
-var Input = function (ref) {
-    var key = ref.key;
-
-    return function (state, actions) {
+var Input = function () { return function (state, actions) {
     var onfocus = function () {
         if (state.filtered.length)
             { actions.setShowDropdown(true); }
@@ -495,8 +97,8 @@ var Input = function (ref) {
         }
     };
 
-    return h('input', {
-        key: key,
+    return hyperapp.h('input', {
+        key: 'input',
         id: state.inputId,
         class: state.inputClass,
         autocomplete: 'off',
@@ -508,14 +110,13 @@ var Input = function (ref) {
         oncreate: oncreate,
         style: { boxSizing: 'border-box' }
     });
-};
-};
+}; };
 
 var Dropdown = function (ref, children) {
     var dropdownClass = ref.dropdownClass;
     var isSelectMode = ref.isSelectMode;
 
-    return h('div', {
+    return hyperapp.h('div', {
         class: ("otto-div " + dropdownClass).trim(),
         style: {
             maxHeight: isSelectMode ? '300px' : null,
@@ -531,7 +132,7 @@ var Dropdown = function (ref, children) {
 var UnorderedList = function (ref, children) {
     var ulClass = ref.ulClass;
 
-    return h('ul', { class: ("otto-ul " + ulClass).trim() },
+    return hyperapp.h('ul', { class: ("otto-ul " + ulClass).trim() },
         children
     );
 };
@@ -551,25 +152,27 @@ var ListElement = function (ref) {
         onmousedown: function () { return onmousedown(choice.value); }
     };
 
+    attrs.onupdate = function (li) {
+        if (isSelected) { li.scrollIntoView({ block: 'nearest' }); }
+    };
+
     /**
      * If Custom Render Method
      */
     if (renderItem) {
         attrs.oncreate = function (e) { return e.innerHTML = renderItem(choice, inputVal); };
-        return h('li', attrs);
+        return hyperapp.h('li', attrs);
     }
 
     var children;
 
     if (choice.label.toUpperCase().indexOf(inputVal.toUpperCase()) > -1) {
         children = createEmphasizedText(choice, inputVal);
-    } else if (choice.label !== choice.matchOn) {
-        children = createMatchedOnText(choice);
     } else {
-        children = h('i', { style: { opacity: '0.4' } }, choice.label);
+        children = hyperapp.h('i', { style: { opacity: '0.5' } }, choice.label);
     }
     
-    return h('li', attrs, children);
+    return hyperapp.h('li', attrs, children);
 };
 
 function createEmphasizedText(choice, inputVal) {
@@ -583,17 +186,7 @@ function createEmphasizedText(choice, inputVal) {
         end: emLabel.slice(emIndex + len)
     };
 
-    return [term.beg, h('b', {}, term.mid), term.end];
-}
-
-function createMatchedOnText(choice) {
-    return [
-        choice.label,
-        ' ',
-        h('em', {
-            style: { opacity: '0.6' }
-        }, ("(" + (choice.matchOn) + ")"))
-    ];
+    return [term.beg, hyperapp.h('b', {}, term.mid), term.end];
 }
 
 function removeHTML(s) {
@@ -601,92 +194,142 @@ function removeHTML(s) {
 }
 
 var dotSize = '6';
+var loOpacity = '0.3';
+var hiOpacity = '0.7';
 
-var Dot = function (opacity) { return h('div', {
+var Dot = function (opacity) { return hyperapp.h('div', {
+    className: 'otto-spinner',
     style: {
         borderRadius: '2em',
         margin: '0 0.1em',
         display: 'inline-block',
         height: dotSize + 'px',
         width: dotSize + 'px',
-        background: 'black',
-        opacity: opacity || '0.1',
+        opacity: opacity || loOpacity,
         transition: 'all 0.3s ease'
     }
 }); };
 
 var Spinner = function (ref) {
-    var key = ref.key;
     var inputRef = ref.inputRef;
+    var setTimer = ref.setTimer;
+    var clearTimer = ref.clearTimer;
 
-    return h('div', {
-        key: key,
+    return hyperapp.h('div', {
+        key: 'spinner',
         style: {
             position: 'absolute',
             display: 'flex',
             alignItems: 'center',
             top: ((inputRef.offsetHeight / 2) - (dotSize / 2)) + 'px',
-            right: '0.5em',
+            right: '2.6em',
+        },
+        ondestroy: function () {
+            clearTimer();
         },
         oncreate: function (div) {
             var current = 1;
             var children = div.childNodes;
 
-            setInterval(function () {
+            setTimer(setInterval(function () {
                 for (var i = 0; i < children.length; i++) {
                     // Reset Opacities
-                    children[i].style.opacity = '0.1';
+                    children[i].style.opacity = loOpacity;
                 }
 
                 if (current === children.length)
                     { current = 0; }
 
-                children[current].style.opacity = '0.4';
+                children[current].style.opacity = hiOpacity;
                 current += 1;
-            }, 300);
+            }, 300));
         }
-    }, [Dot('0.4'), Dot(), Dot()]);
+    }, [Dot(hiOpacity), Dot(), Dot()]);
 };
 
 var App = function () { return function (state, actions) {
-    // Choices List
-    var list = state.selectMode ? state.all : state.filtered;
+    // State
+    var list = state.filtered;
 
-    // List Element Action
-    var onListElementMouseDown = actions.onListElementMouseDown;
+    // Computed
+    var showClearBtn = (state.showClearBtn && state.inputVal && state.inputRef !== null);
+    var showSpinner  = (state.showSpinner && state.isFetching && state.inputRef !== null);
+    var showEmptyMsg = (state.selectMode && list.length < 1);
 
-    return h('div', { class: state.divClass },
-        h('div', { style: { position: 'relative' } },
-            (state.isFetching && state.inputRef !== null)
-                ? Spinner({ key: 'spinner', inputRef: state.inputRef })
-                : null
+    var clearInput = function () {
+        actions.setInputVal('');
+        actions.focusInputAndHideDropdown();
+    };
+
+    return hyperapp.h('div', { class: state.divClass },
+        hyperapp.h('div', { style: { position: 'relative' } },
+            state.selectMode
+                ? SelectInput()
+                : Input()
             ,
 
-            state.selectMode
-                ? SelectInput({ key: 'input' })
-                : Input({ key: 'input' })
+            showClearBtn &&
+                ClearInputBtn({ inputRef: state.inputRef, clearInput: clearInput })
+            ,
+
+            showSpinner &&
+                Spinner({
+                    inputRef: state.inputRef,
+                    setTimer: actions.setTimer,
+                    clearTimer: actions.clearTimer
+                })
             
         ),
 
-        state.showDropdown
-            ? Dropdown({ dropdownClass: state.dropdownClass, isSelectMode: state.selectMode },
+        state.showDropdown &&
+            Dropdown({ dropdownClass: state.dropdownClass, isSelectMode: state.selectMode },
                 UnorderedList({ ulClass: state.ulClass },
-                    list.map(function (c, i) {
-                        return ListElement({
-                            liClass: state.liClass,
-                            choice: c,
-                            isSelected: state.selected === i,
-                            inputVal: state.inputVal,
-                            renderItem: state.renderItem,
-                            onmousedown: onListElementMouseDown
-                        });
-                    })
+                    showEmptyMsg
+                        ? EmptyListElement({ emptyMsg: state.emptyMsg })
+                        : list.map(function (c, i) {
+                            return ListElement({
+                                liClass: state.liClass,
+                                choice: c,
+                                isSelected: state.selected === i,
+                                inputVal: state.inputVal,
+                                renderItem: state.renderItem,
+                                onmousedown: actions.onListElementMouseDown
+                            });
+                        })
+                    
                 )
             )
-            : null
         
     );
 }; };
+
+var filterChoiceList = function (val, list, matchFullWord, maxResults) {
+    var v = val.toUpperCase();
+
+    var filtered = list.filter(function (c) {
+        var label = c.label;
+        var index = label.toUpperCase().indexOf(v);
+
+        var wordPassesTest = matchFullWord || false
+            ? label[index - 1] === undefined || label[index - 1] === ' '
+            : true
+        ;
+
+        return index > -1 && wordPassesTest;
+    });
+
+    if (maxResults !== undefined)
+        { filtered = filtered.slice(0, maxResults); }
+
+    return filtered;
+};
+
+var choicePropMap = function (choice) {
+    return Object.assign({}, choice, {
+        label: choice.label,
+        value: choice.value || choice.label
+    });
+};
 
 var actions = {
     /**
@@ -704,10 +347,18 @@ var actions = {
 
     setInputRef: function (inputRef) { return ({ inputRef: inputRef }); },
 
+    setTimer: function (timer) { return ({ timer: timer }); },
+
     setInputVal: function (inputVal) { return function (state) {
         if (state.valueEvent)
             { state.valueEvent(inputVal); }
         return { inputVal: inputVal };
+    }; },
+
+    addToCache: function (args) { return function (state) {
+        var newCache = Object.assign({}, state.cache);
+        newCache[args.key] = [].concat( args.choices );
+        return { cache: newCache };
     }; },
 
     /**
@@ -787,9 +438,7 @@ var actions = {
             { actions.setSelected(null); }
         else if (state.selected === null)
             { actions.setSelected(0); }
-        else if (state.selected === state.filtered.length - 1)
-            { return; }
-        else
+        else if (state.selected !== state.filtered.length - 1)
             { actions.setSelected(state.selected + 1); }
     }; },
 
@@ -803,9 +452,63 @@ var actions = {
     }; },
 
     /**
+     * SelectInput Actions
+     */
+    onSelectInput: function (e) { return function (state, actions) {
+        var inputVal = e.target.value;
+        actions.setInputVal(inputVal);
+
+        if (state.source) {
+            actions.fetchFromSource(function (choices) {
+                var filtered = filterChoiceList(inputVal, choices, state.matchFullWord);
+                actions.setAll(choices);
+                actions.setFiltered(filtered);
+            });
+        } else {
+            if (inputVal.trim() === '') {
+                actions.setFiltered(state.all);
+            } else {
+                var filtered = filterChoiceList(inputVal, state.all, state.matchFullWord);
+                actions.setFiltered(filtered);
+            }
+        }
+    }; },
+
+    onSelectInputMousedown: function () { return function (state, actions) {
+        if (state.source) {
+            actions.fetchFromSource(function (choices) {
+                actions.setAll(choices);
+                actions.setFiltered(choices);
+                actions.setShowDropdown(true);
+            });
+        } else {
+            actions.setShowDropdown(true);
+        }
+    }; },
+
+    onSelectInputBlur: function () { return function (state, actions) {
+        var inputVal = state.inputVal;
+
+        // Check if inputVal exists in list
+        var value = null;
+
+        for (var i = 0; i < state.all.length; i++) {
+            if (state.all[i].value.toUpperCase() === inputVal.trim().toUpperCase()) {
+                value = state.all[i].value;
+                break;
+            }
+        }
+
+        if (!value) { actions.setInputVal(''); }
+        else { actions.setInputVal(value); }
+
+        actions.setFiltered(state.all);
+    }; },
+
+    /**
      * ListElement Actions
      */
-    onListElementMouseDown: function (inputVal) { return function (state, actions) {        
+    onListElementMouseDown: function (inputVal) { return function (state, actions) {
         var filtered = filterChoiceList(
             inputVal,
             state.all,
@@ -821,10 +524,9 @@ var actions = {
     /**
      * Misc
      */
-    addToCache: function (args) { return function (state) {
-        var newCache = Object.assign({}, state.cache);
-        newCache[args.key] = [].concat( args.choices );
-        return { cache: newCache };
+
+    clearTimer: function () { return function (state) {
+        clearInterval(state.timer);
     }; },
 
     /**
@@ -874,16 +576,31 @@ function Otto(root, config, choices) {
             }
         });
 
-        choices = choices.map(choicePropMap);
+        choices = this.normalizeChoices(choices);
     }
 
-    var state = {
+    var state = this.createState(config, choices);
+    var view = function () { return App(); };
+
+    this.actions = hyperapp.app(state, actions, view, root);
+}
+
+Otto.prototype.isObject = function(x) {
+    return (x !== null) && (x.constructor === Object);
+};
+
+Otto.prototype.normalizeChoices = function(choices) {
+    return choices.map(choicePropMap);
+};
+
+Otto.prototype.createState = function(config, choices) {
+    return {
         showDropdown: false,
         isFetching: false,
         selected: null,
         inputRef: null,
         inputVal: '',
-        choice: null,
+        timer: undefined,
 
         cache: {},
         filtered: [],
@@ -898,7 +615,9 @@ function Otto(root, config, choices) {
         ulClass: config.ulClass || '',
         liClass: config.liClass || '',
 
-        emptyMsg: config.emptyMsg || 'No Results.',
+        showClearBtn: config.showClearBtn || true,
+        showSpinner: config.showSpinner || true,
+        emptyMsg: config.emptyMsg || 'No Options',
         selectMode: config.selectMode || false,
         matchFullWord: config.matchFullWord || false,
         minChars: config.minChars || 3,
@@ -910,14 +629,6 @@ function Otto(root, config, choices) {
         events: config.events || null,
         source: config.source || null
     };
-
-    var view = function () { return App(); };
-    this.application = app(state, actions, view, root);
-}
-
-Otto.prototype.isObject = function(x) {
-    return (x !== null) && (x.constructor === Object);
 };
 
 module.exports = Otto;
-//# sourceMappingURL=otto.cjs.js.map

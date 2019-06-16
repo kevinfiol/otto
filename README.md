@@ -1,7 +1,7 @@
 otto
 ===
 
-Simple, lightweight, Vanilla JS autocomplete with no dependencies.
+Lightweight JavaScript autocomplete built on top of Hyperapp.
 
 ![NPM version](https://badge.fury.io/js/otto-complete.svg)
 
@@ -31,17 +31,17 @@ They are only four lines. Here's a snippet of it for your convenience:
 ```css
 .otto-ul { padding: 0; margin: 0; }
 .otto-li { padding: 6px; margin: 0; }
-.otto-selected { background-color: #f2f2f2; }
+.otto-selected, .otto-li:hover { background-color: #f2f2f2; }
 .otto-div { border: 1px solid lightgrey; -webkit-transition: all 0.5s; transition: all 0.5s; }
 ```
 
 ## Usage
-Otto takes three arguments: an `input` HTML element, a `config` object, and a `choices` array.
+Otto takes three arguments: a `div` HTML element, a `config` object, and an optional `choices` array.
 ```js
 new Otto(inputElement, config, choices);
 ```
 
-Choices **must be objects** with at the very least have a `label` attribute defined. If your choice objects only contain the `label` attribute, `value` and `matchOn` attributes will default to the `label` value.
+The `choices` consists of "choices". Choices **must be objects** with at the very least a `label` property defined. If your choice objects only contain the `label` property, the `value` property will default to the `label` value.
 
 Example:
 ```js
@@ -52,22 +52,19 @@ var choices = [
 	{ label: 'banana' },
 ];
 
-// `label` is required. Both `value` and `matchOn` are optional.
+// `label` is required. `value` is optional.
 var otherChoices = [
 	{
-		// What the user sees
+		// What the user sees and what input is matched on
 		label: 'apple',
 
 		// What the input gets populated with upon selection
-		value: 'A red delicious fruit',
-
-		// What Otto will match on
-		matchOn: 'apple APPLE red fruit grannysmith'
+		value: 'A red delicious fruit'
 	},
 
 	// Extra attributes can be added to your choice objects for use
-	// In custom renderItem or selectEvents.
-	{ label: 'banana', value: 'Monkey Bananas', matchOn: 'monkey yellow banana', bananaCode: 52 }
+	// In renderItem or selectEvent custom methods.
+	{ label: 'banana', value: 'Monkey Bananas', bananaCode: 52 }
 ];
 
 // Config Object (Optional)
@@ -78,17 +75,38 @@ var config = {
 	// Maximum results to display; Default is 7		
 	maxResults: 5,
 
-	// Append custom class to div container	
-	divClass: 'myDivClass'
+	// Enable Select Mode wherein Otto behaves like a dropdown; Default is false
+	selectMode: false,
 
-	// Append custom class to ul element
-	ulClass: 'myUlClass'
+	// Append custom class to the div container
+	divClass: 'myDivClass',
+
+	// Append custom class to the dropdown container
+	dropdownClass: 'myDropdownClass',
+
+	// Append custom class to the input element
+	inputClass: 'myInputClass',
+
+	// Append custom ID to the input element
+	inputClass: 'myInputId',
+
+	// Append custom class to the ul element
+	ulClass: 'myUlClass',
 
 	// Append custom class to all li elements	
-	liClass: 'myLiClass'
+	liClass: 'myLiClass',
+
+	// To show or hide clear button on input; Default is true
+	showClearBtn: true,
+
+	// To show or hide spinner on XHR requests; Default is true
+	showSpinner: true,
+
+	// Custom message when there are no available options; Default is 'No Options'
+	emptyMsg: null,
 
 	// Match only full words. Default is false.
-	matchFullWord: true,
+	matchFullWord: false,
 
 	// Enter Event. A callback function to execute upon hitting the Enter Key.
 	// It takes one argument, which is the the event object.
@@ -130,7 +148,7 @@ var config = {
 var otto = new Otto(document.getElementById('search'), config, choices);
 ```
 
-**Note:** If a source array is not provided (such as in this example, `choices`), Otto will fall back on the source function passed inside the `config` object.
+**Note:** If a source array is not provided (such as in this example, `choices`), Otto will fall back on the source function passed inside the `config` object. If both are provided, Otto will only utilize the source function.
 
 ## Using `config.source`
 

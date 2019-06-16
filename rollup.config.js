@@ -45,7 +45,8 @@ const configs = [
             nodeResolve(),
             commonjs(),
             buble()
-        ]
+        ],
+        external: ['hyperapp']
     }
 ];
 
