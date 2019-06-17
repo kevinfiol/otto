@@ -736,6 +736,14 @@ var Otto = (function () {
       });
   };
 
+  var normalizeChoices = function (choices) {
+      return choices.map(choicePropMap);
+  };
+
+  var isObject = function (x) {
+      return (x !== null) && (x.constructor === Object);
+  };
+
   var actions = {
       /**
        * Setters
@@ -966,9 +974,7 @@ var Otto = (function () {
   };
 
   function Otto(root, config, choices) {
-      var this$1 = this;
-
-      if (!this.isObject(config))
+      if (!isObject(config))
           { throw 'Otto Error: `config` must be an object.'; }
       if (choices !== undefined && !Array.isArray(choices))
           { throw 'Otto Error: `choices` must be an array of objects.'; }
@@ -976,30 +982,15 @@ var Otto = (function () {
       if (choices !== undefined) {
           // Check choices list
           choices.forEach(function (c) {
-              if (!this$1.isObject(c) || !c.label) {
+              if (!isObject(c) || !c.label) {
                   throw 'Otto Error: All choices must be objects with a `label` attribute.';
               }
-          });
+          }); 
 
-          choices = this.normalizeChoices(choices);
+          choices = normalizeChoices(choices);
       }
 
-      var state = this.createState(config, choices);
-      var view = function () { return App(); };
-
-      this.actions = app(state, actions, view, root);
-  }
-
-  Otto.prototype.isObject = function(x) {
-      return (x !== null) && (x.constructor === Object);
-  };
-
-  Otto.prototype.normalizeChoices = function(choices) {
-      return choices.map(choicePropMap);
-  };
-
-  Otto.prototype.createState = function(config, choices) {
-      return {
+      var state = {
           showDropdown: false,
           isFetching: false,
           selected: null,
@@ -1034,7 +1025,10 @@ var Otto = (function () {
           events: config.events || null,
           source: config.source || null
       };
-  };
+
+      var view = function () { return App(); };
+      this.actions = app(state, actions, view, root);
+  }
 
   return Otto;
 
