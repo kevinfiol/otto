@@ -52,14 +52,14 @@ The `choices` array should consist of "choice" objects. Choices **must be object
 Example:
 ```js
 // Choices array
-var choices = [
+let choices = [
 	{ label: 'apple' },
 	{ label: 'kiwi' },
 	{ label: 'banana' },
 ];
 
 // `label` is required. `value` is optional.
-var otherChoices = [
+let otherChoices = [
 	{
 		// What the user sees and what input is matched on
 		label: 'apple',
@@ -74,7 +74,7 @@ var otherChoices = [
 ];
 
 // Config Object (Optional)
-var config = {
+let config = {
 	// Minimum characters before results are filtered; Default is 3
 	minChars: 2,
 
@@ -151,7 +151,7 @@ var config = {
 };
 
 // Initialize Otto instance
-var otto = Otto(document.getElementById('search'), config, choices);
+let otto = Otto(document.getElementById('search'), config, choices);
 ```
 
 **Note:** If a source array is not provided (such as in this example, `choices`), Otto will fall back on the source function passed inside the `config` object. If both are provided, Otto will only utilize the source function.
@@ -164,8 +164,8 @@ Here's a simple, vanilla example:
 
 ```js
 // Define Source Function
-var sourceFunction = function(query, done) {
-	var request = new XMLHttpRequest();
+let sourceFunction = function(query, done) {
+	let request = new XMLHttpRequest();
 	request.open('GET', 'myAPI.php?query=' + query, true);
 
 	request.onload = function() {
@@ -187,7 +187,7 @@ var sourceFunction = function(query, done) {
 }
 
 // Initialize Otto instance
-var otto = new Otto(document.getElementById('search'), {
+let otto = Otto(document.getElementById('search'), {
 	source: sourceFunction
 });
 ```
