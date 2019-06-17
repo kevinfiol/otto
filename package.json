@@ -1,12 +1,12 @@
 {
   "name": "otto-complete",
-  "version": "3.0.6",
+  "version": "3.0.8",
   "description": "A lightweight text autocomplete library built on Hyperapp",
   "main": "dist/otto.min.js",
   "module": "dist/otto.cjs.js",
   "author": "kevinfiol",
   "license": "MIT",
-  "repository": "https://gitlab.com/kevinfiol/otto",
+  "repository": "https://github.com/kevinfiol/otto",
   "browserslist": [
     "last 5 versions",
     "not ie <= 6"
