@@ -1027,7 +1027,7 @@ var Otto = (function () {
       };
 
       var view = function () { return App(); };
-      this.actions = app(state, actions, view, root);
+      return { actions: app(state, actions, view, root) };
   }
 
   return Otto;

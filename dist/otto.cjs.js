@@ -622,7 +622,7 @@ function Otto(root, config, choices) {
     };
 
     var view = function () { return App(); };
-    this.actions = hyperapp.app(state, actions, view, root);
+    return { actions: hyperapp.app(state, actions, view, root) };
 }
 
 module.exports = Otto;
