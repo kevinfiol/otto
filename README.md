@@ -1,6 +1,8 @@
 otto
 ===
 
+### [Demo](https://kevinfiol.com/otto/)
+
 Lightweight JavaScript autocomplete built on top of [Hyperapp v1](https://github.com/jorgebucaran/hyperapp/tree/V1).
 
 ![NPM version](https://badge.fury.io/js/otto-complete.svg)
