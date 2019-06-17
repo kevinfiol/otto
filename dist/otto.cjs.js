@@ -117,8 +117,9 @@ var Dropdown = function (ref, children) {
     var isSelectMode = ref.isSelectMode;
 
     return hyperapp.h('div', {
-        class: ("otto-div " + dropdownClass).trim(),
+        class: ("otto-dropdown " + dropdownClass).trim(),
         style: {
+            position: 'absolute',
             maxHeight: isSelectMode ? '300px' : null,
             width: '100%',
             backgroundColor: 'white',
@@ -198,7 +199,7 @@ var loOpacity = '0.3';
 var hiOpacity = '0.7';
 
 var Dot = function (opacity) { return hyperapp.h('div', {
-    className: 'otto-spinner',
+    className: 'otto-spinner-dot',
     style: {
         borderRadius: '2em',
         margin: '0 0.1em',
@@ -206,7 +207,8 @@ var Dot = function (opacity) { return hyperapp.h('div', {
         height: dotSize + 'px',
         width: dotSize + 'px',
         opacity: opacity || loOpacity,
-        transition: 'all 0.3s ease'
+        transition: 'all 0.3s ease',
+        backgroundColor: 'black'
     }
 }); };
 
@@ -218,6 +220,7 @@ var Spinner = function (ref) {
     return hyperapp.h('div', {
         key: 'spinner',
         style: {
+            class: 'otto-spinner',
             position: 'absolute',
             display: 'flex',
             alignItems: 'center',
@@ -256,7 +259,7 @@ var App = function () { return function (state, actions) {
     var showSpinner  = (state.showSpinner && state.isFetching && state.inputRef !== null);
     var showEmptyMsg = (state.selectMode && list.length < 1);
 
-    return hyperapp.h('div', { class: state.divClass },
+    return hyperapp.h('div', { class: state.divClass, style: { position: 'relative' } },
         hyperapp.h('div', { style: { position: 'relative' } },
             state.selectMode
                 ? SelectInput()
@@ -631,4 +634,3 @@ function Otto(root, config, choices) {
 }
 
 module.exports = Otto;
-//# sourceMappingURL=otto.cjs.js.map

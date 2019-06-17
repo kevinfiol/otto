@@ -1,7 +1,7 @@
 otto
 ===
 
-Lightweight JavaScript autocomplete built on top of Hyperapp.
+Lightweight JavaScript autocomplete built on top of [Hyperapp v1](https://github.com/jorgebucaran/hyperapp/tree/V1).
 
 ![NPM version](https://badge.fury.io/js/otto-complete.svg)
 
@@ -36,12 +36,18 @@ They are only four lines. Here's a snippet of it for your convenience:
 ```
 
 ## Usage
-Otto takes three arguments: a `div` HTML element, a `config` object, and an optional `choices` array.
+Otto takes three arguments: a `div` HTML element, a `config` object, and an optional `choices` array. 
 ```js
-new Otto(inputElement, config, choices);
+let otto = Otto(inputElement, config, choices);
 ```
 
-The `choices` consists of "choices". Choices **must be objects** with at the very least a `label` property defined. If your choice objects only contain the `label` property, the `value` property will default to the `label` value.
+The Otto function returns an object containing a single `actions` object, which contains all action methods for that instance of Otto. With these methods, you may change the state of the input programmatically if you wish.
+```js
+const { actions } = otto;
+actions.setInputVal('some input');
+```
+
+The `choices` array should consist of "choice" objects. Choices **must be objects** with at the very least a `label` property defined. If your choice objects only contain the `label` property, the `value` property will default to the `label` value.
 
 Example:
 ```js
@@ -145,7 +151,7 @@ var config = {
 };
 
 // Initialize Otto instance
-var otto = new Otto(document.getElementById('search'), config, choices);
+var otto = Otto(document.getElementById('search'), config, choices);
 ```
 
 **Note:** If a source array is not provided (such as in this example, `choices`), Otto will fall back on the source function passed inside the `config` object. If both are provided, Otto will only utilize the source function.

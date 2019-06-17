@@ -9,7 +9,19 @@
     <link href="https://fonts.googleapis.com/css?family=PT+Mono&display=swap" rel="stylesheet"> 
     <style>
         body { font-family: 'PT Mono', monospace; background-color: #f7f7f7; color: #424242; }
-        .otto-input { width: 100%;  }
+        h2, h3, h4, h5, h6 { font-weight: 400; }
+        code { padding: 0; }
+
+        .otto-input { width: 100%; height: 2em; padding: 1.5em 1em; font-family: 'PT Mono', monospace; }
+
+        pre {
+            color: #f8f8f2;
+            background: #272822;
+            padding: 1.331em;
+            overflow: auto;
+            text-align: left;
+            line-height: 1.5;
+        }
     </style>
     <title>otto</title>
 </head>
@@ -20,17 +32,138 @@
 
         <hr>
 
-        <div id="input-1"></div>
+        <h2>installation</h2>
+        <p>full docs available on <a href="https://github.com/kevinfiol/otto">github</a></p>
+
+        <code><pre>npm install otto-complete --save</pre></code>
+        <p>or</p>
+        <code><pre>&lt;script src="https://unpkg.com/otto-complete/dist/otto.min.js">&lt;/script></pre></code>
+
+        <p>you may include the optional styles as well:</p>
+<code><pre>.otto-ul { padding: 0; margin: 0; }
+.otto-li { padding: 6px; margin: 0; }
+.otto-selected, .otto-li:hover { background-color: #f2f2f2; }
+.otto-dropdown { border: 1px solid lightgrey; -webkit-transition: all 0.5s; transition: all 0.5s; }</pre></code>
+
+        <p>to style the `input` element, utilize the `inputClass` property in Otto's config to append a custom class.</p>
+        <p><b>note:</b> to style the spinner and the spinner dots, utilize the 'otto-spinner' and 'otto-spinner-dot' classes.</p>
+
+        <hr>
+
+        <h2>usage</h2>
+
+        <h3>local data</h3>
+        <div id="div-1"></div>
+        <code><pre>
+var choices = [
+    { label: 'Alabama' },
+    { label: 'Alaska' },
+    { label: 'Michigan' },
+    { label: 'Minnesota' },
+    { label: 'Wyoming' }
+];
+
+var config = { inputClass: 'otto-input' };
+var otto1 = Otto(document.getElementById('div-1'), config, choices);</pre></code>
+
+        <h3>select mode</h3>
+        <div id="div-2"></div>
+        <code><pre>
+// Same choices array from above
+var config = { inputClass: 'otto-input', selectMode: true };
+var otto2 = Otto(document.getElementById('div-2'), config, choices);</pre></code>
+
+    <h3>xhr / ajax</h3>
+    <p>this example uses the <a href="https://swapi.co/">star wars API</a>. try searching for 'skywalker'</p>
+    <div id="div-3"></div>
+<code><pre>
+var xhr = null;
+var source = function(query, done) {
+    // Abort last request
+    if (xhr) {
+        xhr.abort();
+    }
+
+    xhr = new XMLHttpRequest();
+    xhr.open('GET', 'https://swapi.co/api/people/?search=' + query, true);
+
+    xhr.onload = function () {
+        if (xhr.status >= 200 && xhr.status < 400) {
+            // Parse the response here...
+            var choices = [];
+            var json = JSON.parse(xhr.responseText);
+
+            json.results.forEach(function(person) {
+                choices.push({ label: person.name });
+            });
+
+            done(choices);
+        } else {
+            // Else return empty array
+            done([]);
+        }
+    };
+
+    // Returns empty array onerror
+    xhr.onerror = function() { 
+        done([]);
+    };
+    
+    xhr.send();
+};
+
+var otto3 = Otto(document.getElementById('div-3'), { inputClass: 'otto-input', source: source });</pre></code>
+
     </div>
     <script src="dist/otto.min.js"></script>
     <script>
-        const otto1 = Otto(document.getElementById('input-1'), { inputClass: 'otto-input' }, [
+        var choices = [
             { label: 'Alabama' },
             { label: 'Alaska' },
             { label: 'Michigan' },
             { label: 'Minnesota' },
             { label: 'Wyoming' }
-        ]);
+        ];
+
+        var otto1 = Otto(document.getElementById('div-1'), { inputClass: 'otto-input' }, choices);
+        var otto2 = Otto(document.getElementById('div-2'), { inputClass: 'otto-input', selectMode: true }, choices);
+
+        var xhr = null;
+        var source = function(query, done) {
+            // Abort last request
+            if (xhr) {
+                xhr.abort();
+            }
+
+            xhr = new XMLHttpRequest();
+            xhr.open('GET', 'https://swapi.co/api/people/?search=' + query, true);
+
+            xhr.onload = function () {
+                if (xhr.status >= 200 && xhr.status < 400) {
+                    // Parse the response here...
+                    var choices = [];
+                    var json = JSON.parse(xhr.responseText);
+
+                    json.results.forEach(function(person) {
+                        choices.push({ label: person.name });
+                    });
+
+                    done(choices);
+                } else {
+                    // Else return empty array
+                    done([]);
+                }
+            };
+
+            // Returns empty array onerror
+            xhr.onerror = function() { 
+                done([]);
+            };
+            
+            xhr.send();
+        };
+
+        var otto3 = Otto(document.getElementById('div-3'), { inputClass: 'otto-input', showSpinner: true, source: source });
     </script>
 </body>
 </html>

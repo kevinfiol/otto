@@ -1,4 +1,4 @@
 .otto-ul { padding: 0; margin: 0; }
 .otto-li { padding: 6px; margin: 0; }
 .otto-selected, .otto-li:hover { background-color: #f2f2f2; }
-.otto-div { border: 1px solid lightgrey; -webkit-transition: all 0.5s; transition: all 0.5s; }
+.otto-dropdown { border: 1px solid lightgrey; -webkit-transition: all 0.5s; transition: all 0.5s; }

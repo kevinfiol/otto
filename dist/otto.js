@@ -522,8 +522,9 @@ var Otto = (function () {
       var isSelectMode = ref.isSelectMode;
 
       return h('div', {
-          class: ("otto-div " + dropdownClass).trim(),
+          class: ("otto-dropdown " + dropdownClass).trim(),
           style: {
+              position: 'absolute',
               maxHeight: isSelectMode ? '300px' : null,
               width: '100%',
               backgroundColor: 'white',
@@ -603,7 +604,7 @@ var Otto = (function () {
   var hiOpacity = '0.7';
 
   var Dot = function (opacity) { return h('div', {
-      className: 'otto-spinner',
+      className: 'otto-spinner-dot',
       style: {
           borderRadius: '2em',
           margin: '0 0.1em',
@@ -611,7 +612,8 @@ var Otto = (function () {
           height: dotSize + 'px',
           width: dotSize + 'px',
           opacity: opacity || loOpacity,
-          transition: 'all 0.3s ease'
+          transition: 'all 0.3s ease',
+          backgroundColor: 'black'
       }
   }); };
 
@@ -623,6 +625,7 @@ var Otto = (function () {
       return h('div', {
           key: 'spinner',
           style: {
+              class: 'otto-spinner',
               position: 'absolute',
               display: 'flex',
               alignItems: 'center',
@@ -661,7 +664,7 @@ var Otto = (function () {
       var showSpinner  = (state.showSpinner && state.isFetching && state.inputRef !== null);
       var showEmptyMsg = (state.selectMode && list.length < 1);
 
-      return h('div', { class: state.divClass },
+      return h('div', { class: state.divClass, style: { position: 'relative' } },
           h('div', { style: { position: 'relative' } },
               state.selectMode
                   ? SelectInput()

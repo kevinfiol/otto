@@ -104,7 +104,7 @@
                     };
 
                     var demo1 = new Otto(document.getElementById('demo1'), {
-                        selectMode: true,
+                        // selectMode: true,
                         inputClass: 'otto-demo',
                         minChars: 3,
                         maxResults: 4,
@@ -113,8 +113,8 @@
                         // selectEvent: console.log
                         
                         // renderItem: c => `<em>${c.value}</em>`
-                        // source: sourceFunc
-                    }, choices2);
+                        source: sourceFunc
+                    });
 
                     console.log(demo1);
 
