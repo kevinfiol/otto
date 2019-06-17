@@ -34,8 +34,11 @@ They are only four lines. Here's a snippet of it for your convenience:
 .otto-ul { padding: 0; margin: 0; }
 .otto-li { padding: 6px; margin: 0; }
 .otto-selected, .otto-li:hover { background-color: #f2f2f2; }
-.otto-div { border: 1px solid lightgrey; -webkit-transition: all 0.5s; transition: all 0.5s; }
+.otto-dropdown { border: 1px solid lightgrey; -webkit-transition: all 0.5s; transition: all 0.5s; }
 ```
+
+To style the `input` element, utilize the `inputClass` property in Otto's config to append a custom class.
+To style the spinner and the spinner dots, utilize the `.otto-spinner` and `.otto-spinner-dot` CSS classes.
 
 ## Usage
 Otto takes three arguments: a `div` HTML element, a `config` object, and an optional `choices` array. 
