@@ -661,11 +661,6 @@ var Otto = (function () {
       var showSpinner  = (state.showSpinner && state.isFetching && state.inputRef !== null);
       var showEmptyMsg = (state.selectMode && list.length < 1);
 
-      var clearInput = function () {
-          actions.setInputVal('');
-          actions.focusInputAndHideDropdown();
-      };
-
       return h('div', { class: state.divClass },
           h('div', { style: { position: 'relative' } },
               state.selectMode
@@ -674,7 +669,7 @@ var Otto = (function () {
               ,
 
               showClearBtn &&
-                  ClearInputBtn({ inputRef: state.inputRef, clearInput: clearInput })
+                  ClearInputBtn({ inputRef: state.inputRef, clearInput: actions.onClearInputBtnClick })
               ,
 
               showSpinner &&
@@ -931,6 +926,16 @@ var Otto = (function () {
 
           actions.setInputVal(inputVal);
           actions.setFiltered(filtered);
+          actions.focusInputAndHideDropdown();
+      }; },
+
+      /**
+       * ClearInputBtn Actions
+       */
+      onClearInputBtnClick: function () { return function (state, actions) {
+          actions.setInputVal('');
+          if (!state.selectMode) { actions.setFiltered([]); }
+
           actions.focusInputAndHideDropdown();
       }; },
 

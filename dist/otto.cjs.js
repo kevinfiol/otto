@@ -256,11 +256,6 @@ var App = function () { return function (state, actions) {
     var showSpinner  = (state.showSpinner && state.isFetching && state.inputRef !== null);
     var showEmptyMsg = (state.selectMode && list.length < 1);
 
-    var clearInput = function () {
-        actions.setInputVal('');
-        actions.focusInputAndHideDropdown();
-    };
-
     return hyperapp.h('div', { class: state.divClass },
         hyperapp.h('div', { style: { position: 'relative' } },
             state.selectMode
@@ -269,7 +264,7 @@ var App = function () { return function (state, actions) {
             ,
 
             showClearBtn &&
-                ClearInputBtn({ inputRef: state.inputRef, clearInput: clearInput })
+                ClearInputBtn({ inputRef: state.inputRef, clearInput: actions.onClearInputBtnClick })
             ,
 
             showSpinner &&
@@ -526,6 +521,16 @@ var actions = {
 
         actions.setInputVal(inputVal);
         actions.setFiltered(filtered);
+        actions.focusInputAndHideDropdown();
+    }; },
+
+    /**
+     * ClearInputBtn Actions
+     */
+    onClearInputBtnClick: function () { return function (state, actions) {
+        actions.setInputVal('');
+        if (!state.selectMode) { actions.setFiltered([]); }
+
         actions.focusInputAndHideDropdown();
     }; },
 
