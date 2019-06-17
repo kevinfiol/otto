@@ -1,3 +1,4 @@
 node_modules/
-dev/
+.reify-cache/
 lib/
+tests/

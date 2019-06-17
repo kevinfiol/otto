@@ -1,9 +1,9 @@
 {
   "name": "otto-complete",
-  "version": "2.0.1",
-  "description": "A lightweight text autocomplete library",
-  "main": "dist/otto.cjs.js",
-  "module": "dist/otto.min.js",
+  "version": "3.0.3",
+  "description": "A lightweight text autocomplete library built on Hyperapp",
+  "main": "dist/otto.min.js",
+  "module": "dist/otto.cjs.js",
   "author": "kevinfiol",
   "license": "MIT",
   "repository": "https://gitlab.com/kevinfiol/otto",
@@ -14,17 +14,21 @@
   "scripts": {
     "start": "rollup -c -w --environment DEV",
     "build": "rollup -c --environment PROD",
-    "test": "ospec"
+    "test": "ospec --require reify"
   },
   "devDependencies": {
     "eslint": "^5.14.1",
     "eslint-plugin-compat": "^2.2.0",
+    "flyd": "^0.2.8",
     "jsdom": "^13.2.0",
     "ospec": "^3.1.0",
+    "reify": "^0.18.1",
     "rollup": "^1.4.0",
     "rollup-plugin-buble": "^0.19.6",
     "rollup-plugin-commonjs": "^9.2.1",
+    "rollup-plugin-livereload": "^1.0.0",
     "rollup-plugin-node-resolve": "^4.0.1",
+    "rollup-plugin-serve": "^1.0.1",
     "rollup-plugin-uglify": "^6.0.2"
   },
   "eslintConfig": {
@@ -37,5 +41,8 @@
     "parserOptions": {
       "sourceType": "module"
     }
+  },
+  "dependencies": {
+    "hyperapp": "^1.2.9"
   }
 }
