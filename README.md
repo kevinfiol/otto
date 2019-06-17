@@ -26,7 +26,7 @@ Or if you're not using a package manager:
 <script src="https://unpkg.com/otto-complete/dist/otto.min.js"></script>
 ```
 
-You may include the optional styles also located [here](https://gitlab.com/kevinfiol/otto/blob/master/dist/otto.css).
+You may include the optional styles also located [here](https://github.com/kevinfiol/otto/blob/master/dist/otto.css).
 They are only four lines. Here's a snippet of it for your convenience:
 ```css
 .otto-ul { padding: 0; margin: 0; }
