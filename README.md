@@ -5,7 +5,7 @@ otto
 
 Otto has been superceded by [etto](https://github.com/kevinfiol/etto), which has many of the same features and more, and *zero* dependencies. Otto will no longer be maintained.
 
-## [Demo](https://kevinfiol.com/otto/)
+## [Demo](https://kevinfiol.github.io/otto)
 
 Lightweight JavaScript autocomplete built on top of [Hyperapp v1](https://github.com/jorgebucaran/hyperapp/tree/V1).
 
